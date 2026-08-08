@@ -1,5 +1,6 @@
 baseURL = 'https://tq9tjcnqyc-boop.github.io/'
 languageCode = 'zh-cn'
+defaultContentLanguage = 'zh'
 title = '壹句'
 theme = 'PaperMod'
 enableInlineShortcodes = true
@@ -9,6 +10,7 @@ cleanDestinationDir = true
 
 [params]
   env = 'production'
+  mainSections = ['posts']
   defaultTheme = 'auto'
   ShowReadingTime = true
   ShowShareButtons = false
