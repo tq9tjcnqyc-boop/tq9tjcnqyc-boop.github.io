@@ -1,10 +1,10 @@
 baseURL = 'https://tq9tjcnqyc-boop.github.io/'
 languageCode = 'zh-cn'
-title = ''
+title = '壹句'
 theme = 'PaperMod'
 enableInlineShortcodes = true
 enableRobotsTXT = true
-paginate = 10
+paginate = 5
 
 [params]
   env = 'production'
@@ -17,10 +17,6 @@ paginate = 10
   ShowToc = true
   hideFooter = false
 
-[params.homeInfoParams]
-  Title = ''
-  Content = ''
-
 [[menu.main]]
   name = '文章'
   url = '/posts/'
@@ -29,11 +25,6 @@ paginate = 10
 [[params.socialIcons]]
   name = 'github'
   url = 'https://github.com/tq9tjcnqyc-boop'
-
-[[menu.main]]
-  name = '关于'
-  url = '/about/'
-  weight = 20
 
 [markup.goldmark.renderer]
   unsafe = true
