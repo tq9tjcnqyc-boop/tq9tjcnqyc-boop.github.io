@@ -1,6 +1,6 @@
 baseURL = 'https://tq9tjcnqyc-boop.github.io/'
 languageCode = 'zh-cn'
-title = '壹句'
+title = ''
 theme = 'PaperMod'
 enableInlineShortcodes = true
 enableRobotsTXT = true
@@ -18,17 +18,17 @@ paginate = 10
   hideFooter = false
 
 [params.homeInfoParams]
-  Title = '壹句'
-  Content = '写代码,听歌,记句子。'
-
-[[params.socialIcons]]
-  name = 'github'
-  url = 'https://github.com/tq9tjcnqyc-boop'
+  Title = ''
+  Content = ''
 
 [[menu.main]]
   name = '文章'
   url = '/posts/'
   weight = 10
+
+[[params.socialIcons]]
+  name = 'github'
+  url = 'https://github.com/tq9tjcnqyc-boop'
 
 [[menu.main]]
   name = '关于'
