@@ -1,0 +1,7 @@
+base_url = "https://tq9tjcnqyc-boop.github.io"
+title = "壹句"
+description = "写代码,听歌,记句子。"
+build_search_index = false
+
+[extra]
+author = "壹句"
