@@ -16,5 +16,5 @@ body {
   font-family: 'TermFont', 'Songti SC', 'PingFang SC', serif;
 }
 .md-content ol {
-  padding-inline-start: 0.75rem;
+  padding-inline-start: 0.625rem;
 }
