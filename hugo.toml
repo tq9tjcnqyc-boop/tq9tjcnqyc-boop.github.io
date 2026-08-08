@@ -5,6 +5,7 @@ theme = 'PaperMod'
 enableInlineShortcodes = true
 enableRobotsTXT = true
 paginate = 5
+cleanDestinationDir = true
 
 [params]
   env = 'production'
