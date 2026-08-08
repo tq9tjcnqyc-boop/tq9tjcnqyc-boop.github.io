@@ -1,0 +1,39 @@
+baseURL = 'https://tq9tjcnqyc-boop.github.io/'
+languageCode = 'zh-cn'
+title = '壹句'
+theme = 'PaperMod'
+enableInlineShortcodes = true
+enableRobotsTXT = true
+paginate = 10
+
+[params]
+  env = 'production'
+  defaultTheme = 'auto'
+  ShowReadingTime = true
+  ShowShareButtons = false
+  ShowPostNavLinks = true
+  ShowCodeCopyButtons = true
+  ShowBreadCrumbs = true
+  ShowToc = true
+  hideFooter = false
+
+[params.homeInfoParams]
+  Title = '壹句'
+  Content = '写代码,听歌,记句子。'
+
+[[params.socialIcons]]
+  name = 'github'
+  url = 'https://github.com/tq9tjcnqyc-boop'
+
+[[menu.main]]
+  name = '文章'
+  url = '/posts/'
+  weight = 10
+
+[[menu.main]]
+  name = '关于'
+  url = '/about/'
+  weight = 20
+
+[markup.goldmark.renderer]
+  unsafe = true

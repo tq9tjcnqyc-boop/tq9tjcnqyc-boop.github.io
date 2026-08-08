@@ -1,4 +1,4 @@
-name: Zola on GitHub Pages
+name: Hugo on GitHub Pages
 
 on:
   push:
@@ -19,10 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: taiki-e/install-action@v2
         with:
-          tool: zola
-      - run: zola build
+          submodules: recursive
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.164.0'
+          extended: true
+      - name: Build
+        run: hugo --minify
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public
