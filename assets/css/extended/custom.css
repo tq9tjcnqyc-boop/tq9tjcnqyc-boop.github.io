@@ -15,9 +15,9 @@
 body {
   font-family: 'TermFont', 'Songti SC', 'PingFang SC', serif;
 }
-/* overscroll/rubber-band at page bottom shows html bg; keep it theme-colored */
+/* lock overscroll: page stops dead at bottom, no rubber-band, no black edge */
 html {
-  background: var(--theme);
+  overscroll-behavior-y: none;
 }
 .md-content ol {
   padding-inline-start: 2.4rem;
