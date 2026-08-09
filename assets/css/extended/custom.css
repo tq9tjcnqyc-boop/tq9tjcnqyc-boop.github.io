@@ -37,13 +37,17 @@ code,
   font-family: 'TermFont', 'JetBrains Mono', ui-monospace, monospace;
 }
 /* light theme: code block = light bg matching cards, Catppuccin Latte tokens.
-   PaperMod ships hardcoded dark chroma-styles.css (Mocha) that ignores theme. */
-html:not([data-theme="dark"]) .highlight,
+   PaperMod ships hardcoded dark chroma-styles.css (Mocha) that ignores theme.
+   Border on OUTER .highlight only - nested pre/chroma/code must not draw
+   their own borders or they stack into double/triple lines in light mode. */
+html:not([data-theme="dark"]) .highlight {
+  background-color: var(--code-bg) !important;
+  border: 1px solid var(--border);
+}
 html:not([data-theme="dark"]) pre,
 html:not([data-theme="dark"]) .chroma,
 html:not([data-theme="dark"]) pre code {
   background-color: var(--code-bg) !important;
-  border: 1px solid var(--border);
 }
 html:not([data-theme="dark"]) .chroma,
 html:not([data-theme="dark"]) pre code {
