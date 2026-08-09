@@ -1,0 +1,19 @@
+<script>
+    (function () {
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) return;
+        // PaperMod theme colors: light = white, dark = rgb(29,30,32)
+        function syncThemeColor() {
+            var theme = document.documentElement.dataset.theme;
+            meta.content = (theme === 'dark') ? '#1d1e20' : '#ffffff';
+        }
+        syncThemeColor();
+        // keep in sync when user toggles theme (data-theme attr changes)
+        if (window.MutationObserver) {
+            new MutationObserver(syncThemeColor).observe(
+                document.documentElement,
+                { attributes: true, attributeFilter: ['data-theme'] }
+            );
+        }
+    })();
+</script>

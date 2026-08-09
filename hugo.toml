@@ -30,5 +30,8 @@ disableKinds = ['taxonomy', 'term']
   name = 'github'
   url = 'https://github.com/tq9tjcnqyc-boop'
 
+[params.assets]
+  theme_color = '#ffffff'
+
 [markup.goldmark.renderer]
   unsafe = true
