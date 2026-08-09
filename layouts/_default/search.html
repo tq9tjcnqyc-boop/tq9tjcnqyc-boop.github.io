@@ -34,11 +34,25 @@
                 }
             });
         }
-        // 点击结果链接时记录 (捕获阶段, 拦截新标签页打开也生效)
+        // 点击结果链接时: 写入 localStorage + 立即给 DOM 加 visited 类。
+        // 立即标灰很关键——手机浏览器按返回时走 bfcache(后退缓存), 恢复的
+        // 是离开时的 DOM 快照且不重新执行 JS; 点击瞬间类已加上, 快照里就有。
         document.addEventListener('click', function (e) {
             var a = e.target.closest ? e.target.closest('.pagefind-ui__result-title a') : null;
-            if (a) markVisited(a.href);
+            if (a) {
+                markVisited(a.href);
+                a.classList.add('visited');
+            }
         }, true);
+
+        // bfcache 恢复/切回标签页时兜底重刷 (localStorage 里已有的链接)
+        function refreshVisited() {
+            paintVisited();
+        }
+        window.addEventListener('pageshow', refreshVisited);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) refreshVisited();
+        });
 
         var ui = new PagefindUI({
             element: '#search',
