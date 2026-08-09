@@ -1,0 +1,95 @@
+{{- /* Infinite scroll for the home list page. Falls back to pager if JS off. */ -}}
+{{- if .IsHome -}}
+<script>
+(function () {
+    'use strict';
+    // Only run on pages that have a next-pager link (page 1..n-1).
+    var pagination = document.querySelector('.pagination');
+    if (!pagination) return;
+    var nextLink = pagination.querySelector('a.next, a[href*="/page/"]');
+    if (!nextLink) return;
+
+    var main = document.querySelector('main.main') || document.querySelector('.main');
+    if (!main) return;
+
+    var loading = false;
+    var done = false;
+    var pageFooter = document.querySelector('footer.page-footer');
+
+    // Sentinel sits right before the page-footer; when it scrolls into view we load more.
+    var sentinel = document.createElement('div');
+    sentinel.style.height = '1px';
+    if (pageFooter) {
+        main.insertBefore(sentinel, pageFooter);
+    } else {
+        main.appendChild(sentinel);
+    }
+
+    function loadNext() {
+        if (loading || done || !nextLink) return;
+        loading = true;
+        var url = nextLink.href;
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.text();
+            })
+            .then(function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var articles = doc.querySelectorAll('article');
+                if (articles.length === 0) {
+                    done = true;
+                    if (sentinel && sentinel.parentNode) sentinel.parentNode.removeChild(sentinel);
+                    return;
+                }
+                var frag = document.createDocumentFragment();
+                for (var i = 0; i < articles.length; i++) {
+                    // Copy each article node (keep lazy images working)
+                    frag.appendChild(articles[i]);
+                }
+                // Insert BEFORE the sentinel so the sentinel stays at the end.
+                if (sentinel && sentinel.parentNode) {
+                    main.insertBefore(frag, sentinel);
+                } else if (pageFooter) {
+                    main.insertBefore(frag, pageFooter);
+                } else {
+                    main.appendChild(frag);
+                }
+                // Advance to the next page link, if any.
+                var nextPage = doc.querySelector('.pagination a.next, .pagination a[href*="/page/"]');
+                var oldHref = nextLink.href;
+                nextLink = null;
+                if (nextPage) {
+                    nextLink = nextPage;
+                }
+                // Remove the old pager once we've consumed the last page.
+                if (!nextLink) {
+                    done = true;
+                    if (sentinel && sentinel.parentNode) sentinel.parentNode.removeChild(sentinel);
+                }
+                // Keep URL in sync (optional, non-breaking)
+                try { history.replaceState(null, '', url); } catch (e) {}
+                void oldHref;
+            })
+            .catch(function () {
+                // Network hiccup: give the user one more chance on next scroll.
+                loading = false;
+            });
+    }
+
+    // Trigger when the sentinel is near the viewport (600px head start).
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+            if (entries[0].isIntersecting) loadNext();
+        }, { rootMargin: '600px 0px' });
+        io.observe(sentinel);
+    } else {
+        // Fallback: on scroll, check if sentinel is close to the bottom.
+        window.addEventListener('scroll', function () {
+            var r = sentinel.getBoundingClientRect();
+            if (r.top < window.innerHeight + 600) loadNext();
+        }, { passive: true });
+    }
+})();
+</script>
+{{- end }}
