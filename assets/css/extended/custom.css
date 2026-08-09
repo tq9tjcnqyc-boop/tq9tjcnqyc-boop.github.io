@@ -20,19 +20,6 @@ body {
 html {
   background: var(--theme);
 }
-/* pin footer to viewport bottom: it stays put during scroll and overscroll
-   rubber-band while content scrolls normally */
-.footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--theme);
-  z-index: 50;
-}
-main {
-  padding-bottom: calc(var(--footer-height) + var(--gap));
-}
 .md-content ol {
   padding-inline-start: 2.4rem;
 }
