@@ -15,9 +15,10 @@
 body {
   font-family: 'TermFont', 'Songti SC', 'PingFang SC', serif;
 }
-/* lock overscroll: page stops dead at bottom, no rubber-band, no black edge */
+/* keep rubber-band overscroll feel, but color the revealed strip with theme
+   color instead of raw black (html bg is transparent by default in PaperMod) */
 html {
-  overscroll-behavior-y: none;
+  background: var(--theme);
 }
 .md-content ol {
   padding-inline-start: 2.4rem;
