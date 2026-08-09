@@ -1,0 +1,156 @@
+{{- /* Infinite scroll for the home list page (feed-style, like XHS/Douyin).
+       Loads the NEXT page only when the user scrolls near the bottom; shows a
+       "加载中…" indicator while fetching. Falls back to the pager if JS is off. */ -}}
+{{- if .IsHome -}}
+<style>
+    .isf-loader {
+        display: none;
+        text-align: center;
+        padding: 18px 0 26px;
+        font-size: 14px;
+        color: var(--secondary);
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+    }
+    .isf-loader.visible { display: flex; }
+    .isf-loader .isf-spinner {
+        width: 16px; height: 16px;
+        border: 2px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: isf-spin 0.8s linear infinite;
+    }
+    @keyframes isf-spin { to { transform: rotate(360deg); } }
+    .isf-end {
+        display: none;
+        text-align: center;
+        padding: 14px 0 22px;
+        font-size: 13px;
+        color: var(--secondary);
+    }
+    .isf-end.visible { display: block; }
+</style>
+<script>
+(function () {
+    'use strict';
+    var pagination = document.querySelector('.pagination');
+    if (!pagination) return;
+    var nextLink = pagination.querySelector('a.next');
+    if (!nextLink) return;
+
+    var main = document.querySelector('main.main') || document.querySelector('.main');
+    if (!main) return;
+
+    var pageFooter = document.querySelector('footer.page-footer');
+    if (!pageFooter) return;
+
+    // Feed-style loader + end-of-list markers, placed right where the pager was.
+    var loader = document.createElement('div');
+    loader.className = 'isf-loader';
+    loader.innerHTML = '<span class="isf-spinner"></span><span>加载中…</span>';
+    var endMark = document.createElement('div');
+    endMark.className = 'isf-end';
+    endMark.textContent = '— 已加载全部文章 —';
+    main.insertBefore(loader, pageFooter);
+    main.insertBefore(endMark, pageFooter);
+
+    var loading = false;
+    var done = false;
+
+    // Ensure the loader is visible for at least this long so the feed-style
+    // "加载中…" moment is perceptible even on fast networks.
+    var MIN_LOADER_MS = 400;
+
+    function showLoader() {
+        loader.classList.add('visible');
+    }
+
+    function hideLoader() {
+        loader.classList.remove('visible');
+    }
+
+    function loadNext() {
+        if (loading || done || !nextLink) return;
+        loading = true;
+        var started = Date.now();
+        showLoader();
+        // Path-only URL keeps fetch same-origin locally and on the live site.
+        var full = new URL(nextLink.getAttribute('href'), document.baseURI);
+        var url = full.pathname + full.search + full.hash;
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.text();
+            })
+            .then(function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var articles = doc.querySelectorAll('article');
+                if (articles.length === 0) {
+                    finish();
+                    return;
+                }
+                var frag = document.createDocumentFragment();
+                for (var i = 0; i < articles.length; i++) {
+                    frag.appendChild(articles[i]);
+                }
+                main.insertBefore(frag, loader);
+                // Only .next counts; last page has no .next, only .prev.
+                var nextPage = doc.querySelector('.pagination a.next');
+                nextLink = nextPage || null;
+                // Hide the consumed pager so only the feed remains.
+                if (pageFooter) pageFooter.style.display = 'none';
+                // Keep URL in sync (path-only, non-breaking).
+                try { history.replaceState(null, '', url); } catch (e) {}
+                var elapsed = Date.now() - started;
+                var wait = Math.max(0, MIN_LOADER_MS - elapsed);
+                setTimeout(function () {
+                    if (!nextLink) {
+                        finish();
+                    } else {
+                        hideLoader();
+                        loading = false;
+                    }
+                }, wait);
+            })
+            .catch(function () {
+                // Transient failure: hide spinner, allow retry on next scroll.
+                hideLoader();
+                loading = false;
+            });
+    }
+
+    function finish() {
+        done = true;
+        hideLoader();
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+        endMark.classList.add('visible');
+    }
+
+    // Scroll-based trigger: only fires when the user actually scrolls near the
+    // bottom (within 500px). Never preloads on page open.
+    var ticking = false;
+    function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+            ticking = false;
+            var scrollY = window.scrollY || window.pageYOffset || 0;
+            var docH = document.documentElement.scrollHeight || document.body.scrollHeight;
+            var limit = docH - window.innerHeight;
+            // Only load when the user is actually scrolled near the bottom.
+            // If content is shorter than the viewport (limit < 0) never auto-fire
+            // on page open; the user must scroll (scrollY > 0) to trigger.
+            if (limit > 0 && limit - scrollY < 500) loadNext();
+        });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    // Catch up only if the page was opened already scrolled (e.g. reload
+    // mid-feed, browser restores scroll position). On a fresh open scrollY=0
+    // and the guard above prevents any preload.
+    if ((window.scrollY || window.pageYOffset || 0) > 0) onScroll();
+})();
+</script>
+{{- end }}
