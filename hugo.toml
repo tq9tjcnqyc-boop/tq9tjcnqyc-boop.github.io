@@ -21,7 +21,7 @@ disableKinds = ['taxonomy', 'term']
   ShowShareButtons = false
   ShowPostNavLinks = true
   ShowCodeCopyButtons = true
-  ShowBreadCrumbs = true
+  ShowBreadCrumbs = false
   ShowToc = true
   hideFooter = false
 
