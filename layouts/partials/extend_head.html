@@ -36,6 +36,17 @@
                     inners[j].style.borderRadius = 'var(--radius)';
                 }
             }
+            // Bare <pre class="chroma"> (no .highlight wrapper, e.g. some
+            // siyuan-sourced posts): the PaperMod chroma theme is DARK, so in
+            // light mode give it a proper light card instead of black bg.
+            var bare = document.querySelectorAll('pre.chroma:not(.highlight pre.chroma)');
+            for (var k = 0; k < bare.length; k++) {
+                bare[k].style.background = 'var(--code-bg)';
+                bare[k].style.color = 'var(--content)';
+                bare[k].style.border = '1px solid var(--border)';
+                bare[k].style.borderRadius = 'var(--radius)';
+                bare[k].style.padding = '12px 16px';
+            }
         }
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', fixCodeBorders);
@@ -47,6 +58,31 @@
                 fixCodeBorders();
                 if (meta) syncThemeColor();
             }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        }
+
+        // TOC: iOS Safari 锚点跳转返回会丢滚动位置(回到顶部)。
+        // 点击目录链接用 scrollIntoView 平滑滚动 + replaceState 更新 URL,
+        // 不产生新历史条目 → 返回/左滑时保持目录所在位置。
+        function bindToc() {
+            var toc = document.querySelector('.toc');
+            if (!toc) return;
+            toc.addEventListener('click', function (e) {
+                var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+                if (!a) return;
+                var id = decodeURIComponent(a.getAttribute('href').slice(1));
+                var el = document.getElementById(id);
+                if (!el) return;
+                e.preventDefault();
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (history.replaceState) {
+                    history.replaceState(null, '', a.getAttribute('href'));
+                }
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindToc);
+        } else {
+            bindToc();
         }
     })();
 </script>
