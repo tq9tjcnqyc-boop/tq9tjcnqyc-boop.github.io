@@ -1,0 +1,27 @@
+{{ define "main" }}
+<div class="page-search">
+    <header class="page-header">
+        <h1>搜索</h1>
+    </header>
+    <div id="search"></div>
+</div>
+<script>
+    window.addEventListener('DOMContentLoaded', function () {
+        if (!window.PagefindUI) return;
+        new PagefindUI({
+            element: '#search',
+            showSubResults: true,
+            showImages: false,
+            pageSize: 20,
+            translations: {
+                placeholder: '输入关键词搜索…',
+                zero_results: '没有找到 [SEARCH_TERM] 相关的内容',
+                search_after: '搜索 [SEARCH_TERM] 的结果',
+                search_after_no_results: '搜索 [SEARCH_TERM] 没有结果',
+                loading: '加载中…',
+            }
+        });
+    });
+</script>
+<script src="/pagefind/pagefind-ui.js"></script>
+{{ end }}

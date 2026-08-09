@@ -30,6 +30,11 @@ disableKinds = ['taxonomy', 'term']
   url = '/about/'
   weight = 10
 
+[[menu.main]]
+  name = '搜索'
+  url = '/search/'
+  weight = 20
+
 [[params.socialIcons]]
   name = 'github'
   url = 'https://github.com/tq9tjcnqyc-boop'
