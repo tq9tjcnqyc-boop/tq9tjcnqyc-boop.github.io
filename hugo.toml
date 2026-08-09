@@ -26,8 +26,8 @@ disableKinds = ['taxonomy', 'term']
   hideFooter = false
 
 [[menu.main]]
-  name = '文章'
-  url = '/posts/'
+  name = '关于'
+  url = '/about/'
   weight = 10
 
 [[params.socialIcons]]
