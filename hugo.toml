@@ -35,3 +35,10 @@ disableKinds = ['taxonomy', 'term']
 
 [markup.goldmark.renderer]
   unsafe = true
+
+[markup.highlight]
+  codefences = true
+  noclasses = false
+  style = 'catppuccin-latte'
+  tabwidth = 4
+  wrapperclass = 'highlight'

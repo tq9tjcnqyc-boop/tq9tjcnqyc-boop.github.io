@@ -30,6 +30,128 @@ html:not([data-theme="dark"]) .list {
 html:not([data-theme="dark"]) .post-entry {
   background: var(--code-bg);
 }
+/* code blocks: use TermFont (JetBrains Mono glyphs) everywhere */
+pre,
+code,
+.chroma {
+  font-family: 'TermFont', 'JetBrains Mono', ui-monospace, monospace;
+}
+/* light theme: code block = light bg matching cards, Catppuccin Latte tokens.
+   PaperMod ships hardcoded dark chroma-styles.css (Mocha) that ignores theme. */
+html:not([data-theme="dark"]) .highlight,
+html:not([data-theme="dark"]) pre,
+html:not([data-theme="dark"]) .chroma,
+html:not([data-theme="dark"]) pre code {
+  background-color: var(--code-bg) !important;
+  border: 1px solid var(--border);
+}
+html:not([data-theme="dark"]) .chroma,
+html:not([data-theme="dark"]) pre code {
+  color: #4c4f69;
+}
+html:not([data-theme="dark"]) .chroma .k,
+html:not([data-theme="dark"]) .chroma .kp,
+html:not([data-theme="dark"]) .chroma .kr {
+  color: #8839ef;
+}
+html:not([data-theme="dark"]) .chroma .kc,
+html:not([data-theme="dark"]) .chroma .ne,
+html:not([data-theme="dark"]) .chroma .nv,
+html:not([data-theme="dark"]) .chroma .vc,
+html:not([data-theme="dark"]) .chroma .vg,
+html:not([data-theme="dark"]) .chroma .vi,
+html:not([data-theme="dark"]) .chroma .vm,
+html:not([data-theme="dark"]) .chroma .se,
+html:not([data-theme="dark"]) .chroma .si {
+  color: #fe640b;
+}
+html:not([data-theme="dark"]) .chroma .kd,
+html:not([data-theme="dark"]) .chroma .kt {
+  color: #d20f39;
+}
+html:not([data-theme="dark"]) .chroma .kn {
+  color: #179299;
+}
+html:not([data-theme="dark"]) .chroma .na,
+html:not([data-theme="dark"]) .chroma .nd,
+html:not([data-theme="dark"]) .chroma .nf,
+html:not([data-theme="dark"]) .chroma .fm,
+html:not([data-theme="dark"]) .chroma .nl {
+  color: #1e66f5;
+}
+html:not([data-theme="dark"]) .chroma .nb,
+html:not([data-theme="dark"]) .chroma .bp {
+  color: #04a5e5;
+}
+html:not([data-theme="dark"]) .chroma .nc,
+html:not([data-theme="dark"]) .chroma .no,
+html:not([data-theme="dark"]) .chroma .nn {
+  color: #df8e1d;
+}
+html:not([data-theme="dark"]) .chroma .nt {
+  color: #40a02b;
+}
+html:not([data-theme="dark"]) .chroma .s,
+html:not([data-theme="dark"]) .chroma .sa,
+html:not([data-theme="dark"]) .chroma .sb,
+html:not([data-theme="dark"]) .chroma .sc,
+html:not([data-theme="dark"]) .chroma .dl,
+html:not([data-theme="dark"]) .chroma .s2,
+html:not([data-theme="dark"]) .chroma .sh,
+html:not([data-theme="dark"]) .chroma .sx,
+html:not([data-theme="dark"]) .chroma .s1,
+html:not([data-theme="dark"]) .chroma .sr {
+  color: #40a02b;
+}
+html:not([data-theme="dark"]) .chroma .m,
+html:not([data-theme="dark"]) .chroma .mb,
+html:not([data-theme="dark"]) .chroma .mf,
+html:not([data-theme="dark"]) .chroma .mh,
+html:not([data-theme="dark"]) .chroma .mi,
+html:not([data-theme="dark"]) .chroma .il,
+html:not([data-theme="dark"]) .chroma .mo {
+  color: #fe640b;
+}
+html:not([data-theme="dark"]) .chroma .c,
+html:not([data-theme="dark"]) .chroma .ch,
+html:not([data-theme="dark"]) .chroma .cm,
+html:not([data-theme="dark"]) .chroma .c1,
+html:not([data-theme="dark"]) .chroma .cs,
+html:not([data-theme="dark"]) .chroma .cpf {
+  color: #5c5f77;
+  font-style: italic;
+}
+html:not([data-theme="dark"]) .chroma .cp {
+  color: #fe640b;
+}
+html:not([data-theme="dark"]) .chroma .gd {
+  color: #d20f39;
+}
+html:not([data-theme="dark"]) .chroma .gr,
+html:not([data-theme="dark"]) .chroma .gt {
+  color: #d20f39;
+}
+html:not([data-theme="dark"]) .chroma .gh,
+html:not([data-theme="dark"]) .chroma .gu {
+  color: #1e66f5;
+}
+html:not([data-theme="dark"]) .chroma .gi {
+  color: #40a02b;
+}
+html:not([data-theme="dark"]) .chroma .go,
+html:not([data-theme="dark"]) .chroma .gp {
+  color: #5c5f77;
+}
+html:not([data-theme="dark"]) .chroma .o,
+html:not([data-theme="dark"]) .chroma .p {
+  color: #5c5f77;
+}
+html:not([data-theme="dark"]) .chroma .ow {
+  color: #8839ef;
+}
+html:not([data-theme="dark"]) .chroma .ss {
+  color: #1e66f5;
+}
 .md-content ol {
   padding-inline-start: 2.4rem;
 }
