@@ -190,7 +190,7 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__search-input {
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
-  background: var(--entry) !important;
+  background: var(--code-bg) !important;
   color: var(--content) !important;
   padding: 12px 44px 12px 16px !important;
   box-shadow: none !important;
@@ -199,8 +199,10 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__search-input:focus {
   border-color: var(--primary) !important;
   outline: none;
+  background: var(--entry) !important;
 }
-/* 结果卡片: 独立背景色 + 间距, 亮/暗模式自动适配 */
+/* 结果卡片: 独立背景色 + 间距, 亮/暗模式自动适配
+   code-bg = 亮模式浅灰(#f5f5f5)/暗模式深灰, 与页面背景(白/近黑)形成层次 */
 .pagefind-ui__results-area {
   margin-top: 16px;
 }
@@ -209,7 +211,7 @@ html:not([data-theme="dark"]) .chroma .ss {
   margin: 0 !important;
 }
 .pagefind-ui__result {
-  background: var(--entry) !important;
+  background: var(--code-bg) !important;
   border: 1.5px solid var(--border) !important;
   border-radius: var(--radius) !important;
   padding: 14px 18px;
@@ -230,6 +232,10 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__result-title a:hover {
   color: #8839ef !important;
   text-decoration: underline;
+}
+/* 点过的链接: 变紫(与 hover 同色系), 提示已访问 */
+.pagefind-ui__result-title a:visited {
+  color: #8839ef !important;
 }
 .pagefind-ui__result-excerpt {
   color: var(--secondary) !important;
