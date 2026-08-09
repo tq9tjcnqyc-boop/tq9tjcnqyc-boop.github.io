@@ -18,7 +18,8 @@
         }
         // Hard guarantee: in light mode the code block must render as a SINGLE
         // rounded outer frame. Inline styles beat any stylesheet (incl. stale
-        // cached CSS), so force inner elements border-free no matter what.
+        // cached CSS): zero inner borders AND inner background (inner pre has
+        // no border-radius; its bg would poke square corners out of the arc).
         function fixCodeBorders() {
             if (document.documentElement.dataset.theme === 'dark') return;
             var blocks = document.querySelectorAll('.highlight');
@@ -31,6 +32,8 @@
                     inners[j].style.border = 'none';
                     inners[j].style.outline = 'none';
                     inners[j].style.boxShadow = 'none';
+                    inners[j].style.background = 'transparent';
+                    inners[j].style.borderRadius = 'var(--radius)';
                 }
             }
         }
