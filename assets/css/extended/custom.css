@@ -295,3 +295,32 @@ html[data-theme="dark"] .pagefind-ui__result-excerpt mark {
   padding: 10px 0;
 }
 
+/* ---------- 代码块滚动条 ---------- */
+/* 亮模式: 浅灰滚动条; 暗模式: 比背景亮一档, 不再乌黑一片 */
+pre::-webkit-scrollbar,
+.highlight::-webkit-scrollbar,
+.post-content pre::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+pre::-webkit-scrollbar-thumb,
+.highlight::-webkit-scrollbar-thumb,
+.post-content pre::-webkit-scrollbar-thumb {
+  background: var(--tertiary);
+  border-radius: 4px;
+}
+pre::-webkit-scrollbar-track,
+.highlight::-webkit-scrollbar-track,
+.post-content pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+html[data-theme="dark"] pre::-webkit-scrollbar-thumb,
+html[data-theme="dark"] .highlight::-webkit-scrollbar-thumb,
+html[data-theme="dark"] .post-content pre::-webkit-scrollbar-thumb {
+  background: rgb(95, 97, 100);
+}
+html[data-theme="dark"] pre::-webkit-scrollbar-thumb:hover,
+html[data-theme="dark"] .highlight::-webkit-scrollbar-thumb:hover {
+  background: rgb(120, 122, 125);
+}
+
