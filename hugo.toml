@@ -5,7 +5,11 @@ title = '壹句'
 theme = 'PaperMod'
 enableInlineShortcodes = true
 enableRobotsTXT = true
-paginate = 5
+paginate = 3
+
+[pagination]
+  pagerSize = 3
+
 cleanDestinationDir = true
 disableKinds = ['taxonomy', 'term']
 
