@@ -1,12 +1,12 @@
 # Pagefind 搜索索引配置
-# 只索引文章正文(.post-content 容器), 列表页/分页页没有此容器 → 自动排除
+# 排除列表页/分页页(body.list 特征) → 只索引文章页与独立页面
 # 分段索引: 搜索时按需下载相关分块, 上万篇文章也毫秒级
 site: public
 output_subdir: pagefind
-root_selector: ".post-content"
 exclude_selectors:
   - "header"
   - "nav"
   - "footer"
   - ".pagination"
   - ".anchor"
+  - "body.list"

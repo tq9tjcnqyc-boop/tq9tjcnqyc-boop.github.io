@@ -204,12 +204,16 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__results-area {
   margin-top: 16px;
 }
+.pagefind-ui__results {
+  padding-inline-start: 0 !important;
+  margin: 0 !important;
+}
 .pagefind-ui__result {
   background: var(--entry) !important;
-  border: 1px solid var(--border) !important;
+  border: 1.5px solid var(--border) !important;
   border-radius: var(--radius) !important;
   padding: 14px 18px;
-  margin-bottom: 12px;
+  margin: 0 0 12px !important;
   list-style: none;
 }
 .pagefind-ui__result-title {
@@ -219,11 +223,12 @@ html:not([data-theme="dark"]) .chroma .ss {
   margin-bottom: 6px;
 }
 .pagefind-ui__result-title a {
-  color: var(--content) !important;
-  text-decoration: none;
+  color: #1e66f5 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px;
 }
 .pagefind-ui__result-title a:hover {
-  color: var(--primary) !important;
+  color: #8839ef !important;
   text-decoration: underline;
 }
 .pagefind-ui__result-excerpt {
@@ -231,11 +236,17 @@ html:not([data-theme="dark"]) .chroma .ss {
   font-size: 0.9rem !important;
   line-height: 1.6;
 }
-/* 高亮的匹配词 */
+/* 高亮的匹配词: 黄色底(经典高亮, 明显) */
 .pagefind-ui__result-excerpt mark {
-  background: transparent;
-  color: var(--primary);
-  font-weight: 600;
+  background: #fef08a !important;
+  color: #1f2937 !important;
+  font-weight: 400 !important;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+html[data-theme="dark"] .pagefind-ui__result-excerpt mark {
+  background: #854d0e !important;
+  color: #fef9c3 !important;
 }
 /* 按钮/消息 */
 .pagefind-ui__button {

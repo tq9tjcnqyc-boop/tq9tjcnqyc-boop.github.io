@@ -26,7 +26,7 @@ disableKinds = ['taxonomy', 'term']
   hideFooter = false
 
 [[menu.main]]
-  name = '🔍'
+  name = '搜索'
   url = '/search/'
   weight = 10
 

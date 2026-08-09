@@ -1,0 +1,12 @@
+{{- /* formats .Content headings by adding an anchor.
+       Site override: also tags the FIRST h1 with data-pagefind-meta="title"
+       so Pagefind extracts the real title even with root_selector set. */ -}}
+{{- $content := replaceRE
+    "(<h1 id=\"([^\"]+)\".+)(</h1>+)"
+    "${1}<a hidden class=\"anchor\" aria-hidden=\"true\" href=\"#${2}\">#</a>${3}"
+    . -}}
+{{- $content = replaceRE
+    "(<h1 id=\"([^\"]+)\")"
+    "${1} data-pagefind-meta=\"title\""
+    $content -}}
+{{ $content | safeHTML }}
