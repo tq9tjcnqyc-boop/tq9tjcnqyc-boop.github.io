@@ -18,3 +18,14 @@ body {
 .md-content ol {
   padding-inline-start: 2.4rem;
 }
+/* override PaperMod 404 default 160px: keep centered layout, sane font sizes */
+.not-found {
+  font-size: 1rem;
+  font-weight: 400;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.not-found-title {
+  font-size: 3rem;
+  font-weight: 700;
+}
