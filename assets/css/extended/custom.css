@@ -185,3 +185,71 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
+/* ---------- Pagefind 搜索页样式 ---------- */
+/* 搜索框: 有边框、圆角、与主题协调 */
+.pagefind-ui__search-input {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  background: var(--entry) !important;
+  color: var(--content) !important;
+  padding: 12px 44px 12px 16px !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease;
+}
+.pagefind-ui__search-input:focus {
+  border-color: var(--primary) !important;
+  outline: none;
+}
+/* 结果卡片: 独立背景色 + 间距, 亮/暗模式自动适配 */
+.pagefind-ui__results-area {
+  margin-top: 16px;
+}
+.pagefind-ui__result {
+  background: var(--entry) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  list-style: none;
+}
+.pagefind-ui__result-title {
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+  color: var(--content) !important;
+  margin-bottom: 6px;
+}
+.pagefind-ui__result-title a {
+  color: var(--content) !important;
+  text-decoration: none;
+}
+.pagefind-ui__result-title a:hover {
+  color: var(--primary) !important;
+  text-decoration: underline;
+}
+.pagefind-ui__result-excerpt {
+  color: var(--secondary) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6;
+}
+/* 高亮的匹配词 */
+.pagefind-ui__result-excerpt mark {
+  background: transparent;
+  color: var(--primary);
+  font-weight: 600;
+}
+/* 按钮/消息 */
+.pagefind-ui__button {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  background: var(--entry) !important;
+  color: var(--content) !important;
+  padding: 8px 18px;
+}
+.pagefind-ui__button:hover {
+  border-color: var(--primary) !important;
+}
+.pagefind-ui__message {
+  color: var(--secondary) !important;
+  padding: 10px 0;
+}
+

@@ -9,3 +9,4 @@ exclude_selectors:
   - "nav"
   - "footer"
   - ".pagination"
+  - ".anchor"

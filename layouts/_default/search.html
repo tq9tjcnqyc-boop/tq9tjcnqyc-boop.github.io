@@ -10,9 +10,16 @@
         if (!window.PagefindUI) return;
         new PagefindUI({
             element: '#search',
-            showSubResults: true,
+            showSubResults: false,
             showImages: false,
             pageSize: 20,
+            processResult: function (result) {
+                // Strip anchor "…#" artifacts from titles extracted from the H1
+                if (result.title) {
+                    result.title = result.title.replace(/#+\s*$/, '').trim();
+                }
+                return result;
+            },
             translations: {
                 placeholder: '输入关键词搜索…',
                 zero_results: '没有找到 [SEARCH_TERM] 相关的内容',
