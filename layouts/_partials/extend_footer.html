@@ -47,6 +47,10 @@
     var pageFooter = document.querySelector('footer.page-footer');
     if (!pageFooter) return;
 
+    // Infinite scroll owns the feed from the start: hide the pager IMMEDIATELY
+    // so it can never flash in while the first page is being fetched.
+    pageFooter.style.display = 'none';
+
     // Feed-style loader + end-of-list markers, placed right where the pager was.
     var loader = document.createElement('div');
     loader.className = 'isf-loader';
