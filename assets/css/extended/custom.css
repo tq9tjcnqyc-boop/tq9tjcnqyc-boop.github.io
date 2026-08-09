@@ -44,6 +44,15 @@ html:not([data-theme="dark"]) .highlight {
   background-color: var(--code-bg) !important;
   border: 1px solid var(--border);
 }
+/* inner elements must NEVER draw their own border (else outer-rounded +
+   inner-square double frame in light mode) - zero out any inherited one */
+html:not([data-theme="dark"]) .highlight pre,
+html:not([data-theme="dark"]) .highlight .chroma,
+html:not([data-theme="dark"]) .highlight pre code {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
 html:not([data-theme="dark"]) pre,
 html:not([data-theme="dark"]) .chroma,
 html:not([data-theme="dark"]) pre code {
