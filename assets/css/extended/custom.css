@@ -257,6 +257,11 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__result-title a.visited {
   color: var(--tertiary) !important;
 }
+/* 暗模式下 tertiary 太暗看不清, 用 --secondary 中灰 */
+html[data-theme="dark"] .pagefind-ui__result-title a:visited,
+html[data-theme="dark"] .pagefind-ui__result-title a.visited {
+  color: var(--secondary) !important;
+}
 .pagefind-ui__result-excerpt {
   color: var(--secondary) !important;
   font-size: 0.9rem !important;
