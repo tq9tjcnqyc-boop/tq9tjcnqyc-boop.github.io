@@ -16,12 +16,19 @@ body {
   font-family: 'TermFont', 'Songti SC', 'PingFang SC', serif;
 }
 /* keep rubber-band overscroll feel, blend revealed strip with page bg:
-   light = #f5f5f5 (--code-bg), dark = theme color. body stays PaperMod default. */
+   light = white (home list bg after swap), dark = theme color */
 html {
-  background: var(--code-bg);
+  background: var(--theme);
 }
 html[data-theme="dark"] {
   background: var(--theme);
+}
+/* light theme: swap home list bg (#f5f5f5) with card bg (white) */
+html:not([data-theme="dark"]) .list {
+  background: var(--entry);
+}
+html:not([data-theme="dark"]) .post-entry {
+  background: var(--code-bg);
 }
 .md-content ol {
   padding-inline-start: 2.4rem;
