@@ -2,10 +2,10 @@
     (function () {
         var meta = document.querySelector('meta[name="theme-color"]');
         if (!meta) return;
-        // PaperMod theme colors: light page bg = #f5f5f5 (--code-bg on .list), dark = rgb(29,30,32)
+        // PaperMod theme colors: light = white (home bg), dark = rgb(29,30,32)
         function syncThemeColor() {
             var theme = document.documentElement.dataset.theme;
-            meta.content = (theme === 'dark') ? '#1d1e20' : '#f5f5f5';
+            meta.content = (theme === 'dark') ? '#1d1e20' : '#ffffff';
         }
         syncThemeColor();
         // keep in sync when user toggles theme (data-theme attr changes)
