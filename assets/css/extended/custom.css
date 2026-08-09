@@ -15,8 +15,12 @@
 body {
   font-family: 'TermFont', 'Songti SC', 'PingFang SC', serif;
 }
-/* keep rubber-band overscroll feel, theme-colored reveal (v1) */
+/* keep rubber-band overscroll feel, blend revealed strip with page bg:
+   light = #f5f5f5 (--code-bg), dark = theme color. body stays PaperMod default. */
 html {
+  background: var(--code-bg);
+}
+html[data-theme="dark"] {
   background: var(--theme);
 }
 .md-content ol {
