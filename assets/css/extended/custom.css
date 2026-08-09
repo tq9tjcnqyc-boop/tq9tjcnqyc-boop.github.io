@@ -211,6 +211,20 @@ html:not([data-theme="dark"]) .chroma .ss {
   padding-inline-start: 0 !important;
   margin: 0 !important;
 }
+/* 搜索框与搜索结果等宽: form/drawer/results 全宽对齐 */
+.pagefind-ui__form,
+.pagefind-ui__drawer,
+.pagefind-ui__results-area {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+/* 去掉清除按钮 */
+.pagefind-ui__search-clear {
+  display: none !important;
+}
+.pagefind-ui__search-input {
+  padding-right: 16px !important;
+}
 .pagefind-ui__result {
   background: var(--code-bg) !important;
   border: 1.5px solid var(--border) !important;
