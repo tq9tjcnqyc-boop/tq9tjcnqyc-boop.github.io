@@ -1,7 +1,9 @@
-{{- /* Infinite scroll for the home list page (feed-style, like XHS/Douyin).
-       Loads the NEXT page only when the user scrolls near the bottom; shows a
-       "加载中…" indicator while fetching. Falls back to the pager if JS is off. */ -}}
-{{- if .IsHome -}}
+{{- /* Feed-style infinite scroll for paged list pages (home + section lists
+       like /posts/). Loads the NEXT page only when the user scrolls near the
+       bottom; shows a "加载中…" indicator while fetching. Falls back to the
+       pager if JS is off. URL is intentionally NOT rewritten — refreshing
+       always returns to the same page. */ -}}
+{{- if or .IsHome (eq .Kind "section") -}}
 <style>
     .isf-loader {
         display: none;
@@ -100,8 +102,6 @@
                 nextLink = nextPage || null;
                 // Hide the consumed pager so only the feed remains.
                 if (pageFooter) pageFooter.style.display = 'none';
-                // Keep URL in sync (path-only, non-breaking).
-                try { history.replaceState(null, '', url); } catch (e) {}
                 var elapsed = Date.now() - started;
                 var wait = Math.max(0, MIN_LOADER_MS - elapsed);
                 setTimeout(function () {
