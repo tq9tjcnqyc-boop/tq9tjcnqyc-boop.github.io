@@ -252,15 +252,15 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__result-title a:hover {
   color: var(--secondary) !important;
 }
-/* 点过的链接: 变淡(--tertiary 灰), 未点(--primary 黑/白) — 同主题色系内区分 */
-.pagefind-ui__result-title a:visited,
+/* 点过的链接: 变淡(--tertiary 灰), 未点(--primary 黑/白) — 同主题色系内区分。
+   只认 .visited 类(JS 内存记录, 刷新即重置)——不用 :visited 伪类,
+   因为它基于浏览器历史, 普通模式刷新后依然生效, 违背"刷新重置"需求。 */
 .pagefind-ui__result-title a.visited {
   color: var(--tertiary) !important;
 }
-/* 暗模式下 tertiary 太暗看不清, 用 --secondary 中灰 */
-html[data-theme="dark"] .pagefind-ui__result-title a:visited,
+/* 暗模式下 tertiary 太暗看不清, 用更亮的中灰 */
 html[data-theme="dark"] .pagefind-ui__result-title a.visited {
-  color: var(--secondary) !important;
+  color: rgb(110, 112, 115) !important;
 }
 .pagefind-ui__result-excerpt {
   color: var(--secondary) !important;
