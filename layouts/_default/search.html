@@ -8,7 +8,39 @@
 <script>
     window.addEventListener('DOMContentLoaded', function () {
         if (!window.PagefindUI) return;
-        new PagefindUI({
+
+        // --- 已访问链接记忆 (localStorage) ---
+        // :visited 伪类在手机浏览器/内置浏览器里经常失效, 用 JS 记录点击过的
+        // 结果 URL, 渲染时直接给这些链接加 visited 类标紫, 100% 可控。
+        var VISITED_KEY = 'pagefind-visited-v1';
+        function getVisited() {
+            try { return JSON.parse(localStorage.getItem(VISITED_KEY) || '[]'); }
+            catch (e) { return []; }
+        }
+        function markVisited(url) {
+            if (!url) return;
+            var list = getVisited();
+            if (list.indexOf(url) === -1) {
+                list.push(url);
+                try { localStorage.setItem(VISITED_KEY, JSON.stringify(list)); } catch (e) {}
+            }
+        }
+        function paintVisited() {
+            var visited = getVisited();
+            if (!visited.length) return;
+            document.querySelectorAll('.pagefind-ui__result-title a').forEach(function (a) {
+                if (visited.indexOf(a.href) !== -1) {
+                    a.classList.add('visited');
+                }
+            });
+        }
+        // 点击结果链接时记录 (捕获阶段, 拦截新标签页打开也生效)
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest ? e.target.closest('.pagefind-ui__result-title a') : null;
+            if (a) markVisited(a.href);
+        }, true);
+
+        var ui = new PagefindUI({
             element: '#search',
             showSubResults: false,
             showImages: false,
@@ -28,6 +60,13 @@
                 loading: '加载中…',
             }
         });
+
+        // 结果渲染是异步的: 用 MutationObserver 在结果出现后标紫已访问链接
+        var target = document.querySelector('#search');
+        var observer = new MutationObserver(function () {
+            paintVisited();
+        });
+        observer.observe(target, { childList: true, subtree: true });
     });
 </script>
 <script src="/pagefind/pagefind-ui.js"></script>

@@ -186,7 +186,8 @@ html:not([data-theme="dark"]) .chroma .ss {
 }
 
 /* ---------- Pagefind 搜索页样式 ---------- */
-/* 搜索框: 有边框、圆角、与主题协调 */
+/* 搜索框: 有边框、圆角、与主题协调。
+   聚焦时只变边框颜色, 背景保持浅灰不变(避免亮模式下 --entry 白色与页面背景混淆) */
 .pagefind-ui__search-input {
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
@@ -199,7 +200,7 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__search-input:focus {
   border-color: var(--primary) !important;
   outline: none;
-  background: var(--entry) !important;
+  background: var(--code-bg) !important;
 }
 /* 结果卡片: 独立背景色 + 间距, 亮/暗模式自动适配
    code-bg = 亮模式浅灰(#f5f5f5)/暗模式深灰, 与页面背景(白/近黑)形成层次 */
@@ -233,8 +234,11 @@ html:not([data-theme="dark"]) .chroma .ss {
   color: #8839ef !important;
   text-decoration: underline;
 }
-/* 点过的链接: 变紫(与 hover 同色系), 提示已访问 */
-.pagefind-ui__result-title a:visited {
+/* 点过的链接: 变紫(与 hover 同色系), 提示已访问。
+   用 JS 记录的 .visited 类 (localStorage), 因为 :visited 伪类在手机
+   内置浏览器里经常失效。:visited 规则保留作增强。 */
+.pagefind-ui__result-title a:visited,
+.pagefind-ui__result-title a.visited {
   color: #8839ef !important;
 }
 .pagefind-ui__result-excerpt {
