@@ -9,27 +9,23 @@
     window.addEventListener('DOMContentLoaded', function () {
         if (!window.PagefindUI) return;
 
-        // --- 已访问链接记忆 (localStorage) ---
-        // :visited 伪类在手机浏览器/内置浏览器里经常失效, 用 JS 记录点击过的
-        // 结果 URL, 渲染时直接给这些链接加 visited 类标紫, 100% 可控。
-        var VISITED_KEY = 'pagefind-visited-v1';
-        function getVisited() {
-            try { return JSON.parse(localStorage.getItem(VISITED_KEY) || '[]'); }
-            catch (e) { return []; }
+        // --- 已访问链接记忆 (内存) ---
+        // 只在当前页面浏览期间生效: 点击过的链接标灰, 刷新/重新进入即重置。
+        // 不用 localStorage——用户要求刷新后回到默认(未点)状态。
+        // 点击瞬间同步给 DOM 加类: 手机 bfcache 后退恢复的是点击后的快照,
+        // 所以返回时仍显示已点, 但刷新会重新执行 JS 并清空记录。
+        var visitedList = [];
+        function isVisited(url) {
+            return visitedList.indexOf(url) !== -1;
         }
         function markVisited(url) {
-            if (!url) return;
-            var list = getVisited();
-            if (list.indexOf(url) === -1) {
-                list.push(url);
-                try { localStorage.setItem(VISITED_KEY, JSON.stringify(list)); } catch (e) {}
-            }
+            if (!url || isVisited(url)) return;
+            visitedList.push(url);
         }
         function paintVisited() {
-            var visited = getVisited();
-            if (!visited.length) return;
+            if (!visitedList.length) return;
             document.querySelectorAll('.pagefind-ui__result-title a').forEach(function (a) {
-                if (visited.indexOf(a.href) !== -1) {
+                if (isVisited(a.href)) {
                     a.classList.add('visited');
                 }
             });
