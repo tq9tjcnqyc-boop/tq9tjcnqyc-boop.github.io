@@ -1,12 +1,17 @@
 {{- /* formats .Content headings by adding an anchor.
-       Site override: also tags the FIRST h1 with data-pagefind-meta="title"
-       so Pagefind extracts the real title even with root_selector set. */ -}}
+       Called with page context (site override of single.html passes .).
+       If the FIRST content H1 duplicates the page title (PaperMod already
+       renders .Title as page header), tag it with class "dup-title" so CSS
+       can hide ONLY that one. Patent docs' first H1 is 说明书摘要 — NOT the
+       title — so it stays visible. */ -}}
 {{- $content := replaceRE
     "(<h1 id=\"([^\"]+)\".+)(</h1>+)"
     "${1}<a hidden class=\"anchor\" aria-hidden=\"true\" href=\"#${2}\">#</a>${3}"
-    . -}}
-{{- $content = replaceRE
-    "(<h1 id=\"([^\"]+)\")"
-    "${1} data-pagefind-meta=\"title\""
-    $content -}}
+    .Content -}}
+{{- if and .Title $content -}}
+{{- $t := .Title | htmlEscape -}}
+{{- /* anchor class 引号可有可无(minify 或 goldmark 输出差异) */ -}}
+{{- $pat := printf "(?s)(<h1[^>]*>)\\s*%s\\s*<a hidden class=\"?anchor[^>]*>#</a>\\s*</h1>" $t -}}
+{{- $content = replaceRE $pat "${1}<span class=\"dup-title\"></span></h1>" $content -}}
+{{- end -}}
 {{ $content | safeHTML }}

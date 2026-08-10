@@ -192,11 +192,11 @@ html:not([data-theme="dark"]) .chroma .ss {
   font-size: 3rem;
   font-weight: 700;
 }
-/* Post page: PaperMod renders .Title as the page header, and the markdown
-   body ALSO starts with an H1 (same title) — hide that duplicate so the
-   title shows once. Only the FIRST h1 in the post body is affected; real
-   section headings (h2+) and any later h1 remain untouched. */
-.post-content > h1:first-child {
+/* Hide the post-body H1 ONLY when it duplicates the page title
+   (PaperMod renders .Title as the page header). anchored_headings.html
+   tags that exact case with .dup-title; patent docs' first H1 is
+   说明书摘要 etc. — not the title — so it has no class and stays visible. */
+.post-content h1:has(> .dup-title) {
   display: none;
 }
 

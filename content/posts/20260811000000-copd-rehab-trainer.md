@@ -126,7 +126,7 @@ draft = false
 
 以上公开的仅为本实用新型的几个具体实施例，但是，本实用新型实施例并非局限于此，任何本领域的技术人员能思之的变化都应落入本实用新型的保护范围。
 
-## 说明书附图
+# 说明书附图
 
 ​![图1](https://raw.githubusercontent.com/tq9tjcnqyc-boop/picx-images/main/copd-trainer-image1.png)​
 

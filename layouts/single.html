@@ -35,12 +35,10 @@
   {{- end }}
 
   {{- if .Content }}
-  {{- /* data-pagefind-body: whitelist for Pagefind — pages with
-         noindex:true (e.g. about) skip this attribute and stay out
-         of search results. */ -}}
-  <div class="post-content md-content"{{ if not .Params.noindex }} data-pagefind-body{{ end }}>
+  <div class="post-content md-content">
     {{- if not (.Param "disableAnchoredHeadings") }}
-    {{- partial "anchored_headings.html" .Content -}}
+    {{- /* 传 . (页面上下文) 而非 .Content: anchored_headings 需要 .Title 判断首 H1 是否重复标题 */ -}}
+    {{- partial "anchored_headings.html" . -}}
     {{- else }}{{ .Content }}{{ end }}
   </div>
   {{- end }}
