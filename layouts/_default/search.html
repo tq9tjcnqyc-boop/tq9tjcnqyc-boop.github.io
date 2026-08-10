@@ -1,4 +1,10 @@
 {{ define "main" }}
+<!-- Pagefind 资源只在此页 preload (全局 head 已移除, 避免首页白白下载) -->
+<link rel="preload" href="/pagefind/pagefind-ui.js" as="script">
+<link rel="preload" href="/pagefind/pagefind.js" as="script">
+<link rel="preload" href="/pagefind/pagefind-ui.css" as="style">
+<link rel="preload" href="/pagefind/wasm.unknown.pagefind" as="fetch" crossorigin>
+<link rel="preload" href="/pagefind/pagefind-entry.json" as="fetch" crossorigin>
 <div class="page-search">
     <header class="page-header">
         <h1>搜索</h1>
