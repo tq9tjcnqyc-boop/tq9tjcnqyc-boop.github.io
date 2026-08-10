@@ -319,7 +319,11 @@ html[data-theme="dark"] .pagefind-ui__result-title a.visited {
   color: #1f2937 !important;
   font-weight: 400 !important;
   border-radius: 2px;
-  padding: 0 1px;
+  /* ⚠️ padding 必须显式 0 + !important: pagefind-ui.css 的 mark{all:revert}
+     会把 mark 恢复成浏览器默认样式(Chrome 默认 mark 带 ~2px padding),
+     连排高亮(如并排五字)时每个 mark 的 padding 会在字间产生额外缝隙,
+     视觉上字距变宽。贴字即可, 字距与不高亮时完全一致。 */
+  padding: 0 !important;
 }
 html[data-theme="dark"] .pagefind-ui__result-excerpt mark {
   background: #854d0e !important;
@@ -440,8 +444,6 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
     color: var(--secondary);
     word-break: break-word;
 }
-.pagefind-ui__result-excerpt mark {
-    background: transparent;
-    color: var(--primary);
-    font-weight: 600;
-}
+/* ⚠️ 旧的高亮定义已删: background:transparent + font-weight:600
+   会覆盖上面的黄色高亮(两者都 !important, 后者胜), 导致高亮变加粗、
+   字距视觉变宽。统一用上方 317 行的黄色底定义。 */
