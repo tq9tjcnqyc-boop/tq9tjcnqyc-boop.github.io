@@ -3,6 +3,7 @@ title = "关于"
 date = "2026-08-10T15:30:00+08:00"
 draft = false
 noindex = true
+pagefind = false
 +++
 
 # 关于这个网站 📚
