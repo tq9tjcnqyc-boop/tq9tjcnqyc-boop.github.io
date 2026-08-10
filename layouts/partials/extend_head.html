@@ -96,9 +96,11 @@
         }
 
         // TOC: iOS Safari 锚点跳转后返回/左滑会丢滚动位置(回到顶部)。
-        // 方案: 点击目录时记住当前位置(目录处), pushState 新增历史条目,
-        // 平滑滚动到标题; 返回时 popstate 触发, 恢复目录位置。
-        var tocScrollY = null;
+        // 方案: 点击目录时记住当前位置, 滚动到标题; 返回时恢复。
+        // ⚠️ headless/移动端实测: 取 scrollY 时已被默认锚点跳转抢先滚走,
+        // 记录的值不是目录位置。改为恢复「TOC 可见位置」= 正文顶部(y=0,
+        // 页面顶部 TOC 始终可见)。
+        var TOC_KEY = 'toc-back-pos';
         function bindToc() {
             var toc = document.querySelector('.toc');
             if (!toc) return;
@@ -109,25 +111,34 @@
                 var el = document.getElementById(id);
                 if (!el) return;
                 e.preventDefault();
-                tocScrollY = window.scrollY;
+                // 记录「回到目录」的位置: 页面顶部(0) 或正文容器顶
+                // (TOC 在页面顶部/侧边, 恢复到这里即可看到目录)
+                var y = 0;
+                try { sessionStorage.setItem(TOC_KEY, String(y)); } catch (err) {}
                 var targetY = el.getBoundingClientRect().top + window.scrollY;
                 // instant 滚动(无动画): 无 smooth 竞态, 返回时 popstate 恢复
-                // 一定生效。带 12px 留白让标题不贴顶。
                 window.scrollTo(0, targetY - 12);
                 if (history.pushState) {
                     history.pushState(null, '', a.getAttribute('href'));
                 }
             });
-            // 返回/左滑: URL 从 #hash 回到无 hash, 恢复目录位置。
+            // 返回/左滑: 从 sessionStorage 读目录位置恢复。
+            // (popstate 的 e.state 在返回后是 null, 不可靠; sessionStorage 跨导航稳定)
             function restoreToc() {
-                if (tocScrollY === null) return;
-                var y = tocScrollY;
-                tocScrollY = null;
-                var restore = function () {
-                    window.scrollTo(0, y);
-                };
+                var y = null;
+                try { y = parseInt(sessionStorage.getItem(TOC_KEY), 10); } catch (err) {}
+                if (y === null || isNaN(y)) return;
+                try { sessionStorage.removeItem(TOC_KEY); } catch (err) {}
+                // 清掉 URL hash, 避免浏览器把滚动拉回锚点位置
+                if (location.hash) {
+                    try { history.replaceState(null, '', location.pathname + location.search); } catch (err) {}
+                }
+                // 浏览器可能在 popstate 后重排/重定位(bfcache), 多重试几次
+                var restore = function () { window.scrollTo(0, y); };
                 requestAnimationFrame(restore);
                 setTimeout(restore, 120);
+                setTimeout(restore, 400);
+                setTimeout(restore, 900);
             }
             window.addEventListener('popstate', restoreToc);
             window.addEventListener('pageshow', function (e) {
