@@ -9,14 +9,18 @@
     (function () {
         // 自动刷新检测: GitHub Pages CDN 缓存 HTML 10 分钟, 部署后刷新可能
         // 拿到旧版。用构建时间戳做版本号, localStorage 比对, 版本变了自动 reload。
-        // (CSS/JS 带内容 hash 指纹不受影响, 这里只管 HTML)
+        // ⚠️ 必须限制为「每会话最多 reload 一次」: CDN 缓存抖动时 reload 后
+        // 版本号可能又不同, 不限制会无限 reload 转圈(2026-08-10 实测踩坑)。
         var VER_KEY = 'site-ver';
+        var RELOAD_KEY = 'site-reloaded-now';
         var THIS_VER = {{ now.Unix }};
         try {
             var old = localStorage.getItem(VER_KEY);
-            if (old && old !== String(THIS_VER)) {
+            var reloaded = sessionStorage.getItem(RELOAD_KEY);
+            if (old && old !== String(THIS_VER) && !reloaded) {
                 localStorage.setItem(VER_KEY, String(THIS_VER));
-                location.reload(true);
+                sessionStorage.setItem(RELOAD_KEY, '1');
+                location.reload();
             } else if (!old) {
                 localStorage.setItem(VER_KEY, String(THIS_VER));
             }
