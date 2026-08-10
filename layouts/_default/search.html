@@ -1,6 +1,5 @@
 {{ define "main" }}
-<!-- Pagefind 资源只在此页 preload (全局 head 已移除, 避免首页白白下载) -->
-<link rel="preload" href="/pagefind/pagefind-ui.js" as="script">
+<!-- Pagefind 核心库 preload (静态搜索框: 搜索框 HTML 直接渲染, 零 JS 依赖) -->
 <link rel="preload" href="/pagefind/pagefind.js" as="script">
 <link rel="preload" href="/pagefind/pagefind-ui.css" as="style">
 <link rel="preload" href="/pagefind/wasm.unknown.pagefind" as="fetch" crossorigin>
@@ -9,81 +8,110 @@
     <header class="page-header">
         <h1>搜索</h1>
     </header>
-    <div id="search"></div>
+    <!-- 静态搜索框: HTML 直接渲染, 不等任何 JS。输入时才动态加载 pagefind -->
+    <div class="pagefind-ui" data-pagefind-ui>
+        <div class="pagefind-ui__search-input-wrap">
+            <input id="search-input" class="pagefind-ui__search-input" type="search"
+                   placeholder="输入关键词搜索…" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+        <div id="search-meta" class="pagefind-ui__message" hidden></div>
+        <div id="search-results" class="pagefind-ui__results"></div>
+    </div>
 </div>
-<script src="/pagefind/pagefind-ui.js"></script>
 <script>
-        // 脚本在 body 底部, DOM 已解析完 + pagefind-ui.js 已执行 → 立即初始化,
-        // 不等 DOMContentLoaded(省一拍延迟)。首次访问资源已 preload。
-        if (!window.PagefindUI) { throw new Error('pagefind-ui not loaded'); }
+(function () {
+    // --- 已访问链接记忆 (内存) --- (沿用原逻辑)
+    var visitedList = [];
+    function isVisited(url) { return visitedList.indexOf(url) !== -1; }
+    function markVisited(url) { if (!url || isVisited(url)) return; visitedList.push(url); }
+    function paintVisited() {
+        if (!visitedList.length) return;
+        document.querySelectorAll('.search-result-title a').forEach(function (a) {
+            if (isVisited(a.href)) a.classList.add('visited');
+        });
+    }
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest ? e.target.closest('.search-result-title a') : null;
+        if (a) { markVisited(a.href); a.classList.add('visited'); }
+    }, true);
+    window.addEventListener('pageshow', paintVisited);
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) paintVisited();
+    });
 
-        // --- 已访问链接记忆 (内存) ---
-        // 只在当前页面浏览期间生效: 点击过的链接标灰, 刷新/重新进入即重置。
-        // 不用 localStorage——用户要求刷新后回到默认(未点)状态。
-        // 点击瞬间同步给 DOM 加类: 手机 bfcache 后退恢复的是点击后的快照,
-        // 所以返回时仍显示已点, 但刷新会重新执行 JS 并清空记录。
-        var visitedList = [];
-        function isVisited(url) {
-            return visitedList.indexOf(url) !== -1;
+    var input = document.getElementById('search-input');
+    var resultsEl = document.getElementById('search-results');
+    var metaEl = document.getElementById('search-meta');
+    var pagefindPromise = null;  // 懒加载 pagefind 核心 (首次输入才初始化)
+
+    function getPagefind() {
+        if (!pagefindPromise) {
+            pagefindPromise = import('/pagefind/pagefind.js');
         }
-        function markVisited(url) {
-            if (!url || isVisited(url)) return;
-            visitedList.push(url);
+        return pagefindPromise;
+    }
+
+    // 渲染一条结果
+    function renderResult(r) {
+        var el = document.createElement('article');
+        el.className = 'pagefind-ui__result';
+        // 标题在 meta.title (Pagefind data() 无顶层 title 字段)
+        var title = ((r.meta && r.meta.title) || r.title || '无标题').replace(/#+\s*$/, '').trim();
+        var tEl = document.createElement('h3');
+        tEl.className = 'pagefind-ui__result-title search-result-title';
+        var a = document.createElement('a');
+        a.href = r.url;
+        a.innerHTML = title;
+        tEl.appendChild(a);
+        // 摘要
+        var eEl = document.createElement('p');
+        eEl.className = 'pagefind-ui__result-excerpt';
+        eEl.innerHTML = r.excerpt || '';
+        el.appendChild(tEl);
+        el.appendChild(eEl);
+        if (isVisited(a.href)) a.classList.add('visited');
+        return el;
+    }
+
+    var timer = null;
+    function onInput() {
+        var q = input.value.trim();
+        clearTimeout(timer);
+        if (!q) {
+            resultsEl.innerHTML = '';
+            metaEl.hidden = true;
+            return;
         }
-        function paintVisited() {
-            if (!visitedList.length) return;
-            document.querySelectorAll('.pagefind-ui__result-title a').forEach(function (a) {
-                if (isVisited(a.href)) {
-                    a.classList.add('visited');
+        timer = setTimeout(function () {
+            getPagefind().then(function (pagefind) {
+                return pagefind.search(q);
+            }).then(function (searchResult) {
+                if (input.value.trim() !== q) return;  // 输入已变, 丢弃过期结果
+                var list = (searchResult && searchResult.results) || [];
+                resultsEl.innerHTML = '';
+                if (!list.length) {
+                    metaEl.textContent = '没有找到「' + q + '」相关的内容';
+                    metaEl.hidden = false;
+                    return;
                 }
+                metaEl.textContent = '搜索「' + q + '」共 ' + list.length + ' 条结果';
+                metaEl.hidden = false;
+                list.forEach(function (r) {
+                    r.data().then(function (d) {
+                        if (input.value.trim() !== q) return;
+                        resultsEl.appendChild(renderResult(d));
+                    });
+                });
+            }).catch(function () {
+                metaEl.textContent = '搜索加载失败，请重试';
+                metaEl.hidden = false;
             });
-        }
-        // 点击结果链接时: 写入 localStorage + 立即给 DOM 加 visited 类。
-        // 立即标灰很关键——手机浏览器按返回时走 bfcache(后退缓存), 恢复的
-        // 是离开时的 DOM 快照且不重新执行 JS; 点击瞬间类已加上, 快照里就有。
-        document.addEventListener('click', function (e) {
-            var a = e.target.closest ? e.target.closest('.pagefind-ui__result-title a') : null;
-            if (a) {
-                markVisited(a.href);
-                a.classList.add('visited');
-            }
-        }, true);
-
-        // bfcache 恢复/切回标签页时兜底重刷 (localStorage 里已有的链接)
-        function refreshVisited() {
-            paintVisited();
-        }
-        window.addEventListener('pageshow', refreshVisited);
-        document.addEventListener('visibilitychange', function () {
-            if (!document.hidden) refreshVisited();
-        });
-
-        var ui = new PagefindUI({
-            element: '#search',
-            showSubResults: false,
-            showImages: false,
-            pageSize: 20,
-            processResult: function (result) {
-                // Strip anchor "…#" artifacts from titles extracted from the H1
-                if (result.title) {
-                    result.title = result.title.replace(/#+\s*$/, '').trim();
-                }
-                return result;
-            },
-            translations: {
-                placeholder: '输入关键词搜索…',
-                zero_results: '没有找到 [SEARCH_TERM] 相关的内容',
-                search_after: '搜索 [SEARCH_TERM] 的结果',
-                search_after_no_results: '搜索 [SEARCH_TERM] 没有结果',
-                loading: '加载中…',
-            }
-        });
-
-        // 结果渲染是异步的: 用 MutationObserver 在结果出现后标紫已访问链接
-        var target = document.querySelector('#search');
-        var observer = new MutationObserver(function () {
-            paintVisited();
-        });
-        observer.observe(target, { childList: true, subtree: true });
+        }, 200);  // 200ms 防抖
+    }
+    input.addEventListener('input', onInput);
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { clearTimeout(timer); onInput(); }
+    });
+})();
 </script>
 {{ end }}
