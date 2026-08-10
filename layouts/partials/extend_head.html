@@ -95,12 +95,45 @@
             }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
 
-        // TOC 返回: 完全交给浏览器原生处理, 不做任何 JS 干预。
-        // ⚠️ 2026-08-11 Safari 实测: 任何 popstate/hashchange 里的 scrollTo
-        // 都会跟 Safari bfcache 原生滚动恢复打架——恢复时页面冻结,
-        // JS 排队到用户触摸才执行(表现: 返回后停止渲染, 动一下才渲染),
-        // 且 scrollTo 会被原生恢复覆盖。Safari 原生 hash 导航返回
-        // 本来就恢复滚动位置, 删掉所有干预代码。
-        // (此段已移除, 留空占位)
+        // TOC 返回恢复（2026-08-11 第三版，针对 iOS Safari）:
+        // Safari 原生 hash 返回不恢复滚动位置(已知 bug), 必须 JS 接管。
+        // 但 popstate 里一次 scrollTo 会输给 bfcache 冻结(页面恢复时暂停,
+        // JS 排队到用户触摸才跑, 且原生恢复会覆盖)。所以:
+        // 1) scrollRestoration='manual' — 告诉浏览器别管滚动, 我们接管
+        // 2) 点击目录时记录当前位置(不 preventDefault, hash 导航正常)
+        // 3) 返回时轮询 scrollTo 直到到位 — 冻结解除后 setTimeout 自然继续
+        try { history.scrollRestoration = 'manual'; } catch (e) {}
+        var TOC_KEY = 'toc-return-y';
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest ? e.target.closest('.toc a[href^="#"]') : null;
+            if (!a) return;
+            // 记录「回到目录」的滚动位置: TOC 容器在文章开头, 取它的
+            // 文档绝对位置(rect.top + scrollY)。不用 window.scrollY——
+            // 点击瞬间原生锚点跳转可能已抢先滚动, 记录到的是标题位置。
+            var toc = document.querySelector('.toc');
+            var y = toc ? toc.getBoundingClientRect().top + window.scrollY : 0;
+            try { sessionStorage.setItem(TOC_KEY, String(Math.max(0, y - 8))); } catch (err) {}
+        });
+        function restoreToc() {
+            var y = null;
+            try { y = parseInt(sessionStorage.getItem(TOC_KEY), 10); } catch (e) {}
+            if (y === null || isNaN(y)) return;
+            try { sessionStorage.removeItem(TOC_KEY); } catch (e) {}
+            var attempts = 0;
+            function attempt() {
+                if (attempts++ > 30) return; // 3 秒上限
+                var maxY = document.documentElement.scrollHeight - window.innerHeight;
+                var target = Math.max(0, Math.min(y, maxY));
+                window.scrollTo(0, target);
+                if (Math.abs(window.scrollY - target) > 2) {
+                    setTimeout(attempt, 100); // 没到位: bfcache 冻结中, 等解冻再试
+                }
+            }
+            attempt();
+        }
+        window.addEventListener('popstate', restoreToc);
+        window.addEventListener('pageshow', function (e) {
+            if (e.persisted) restoreToc(); // bfcache 恢复
+        });
     })();
 </script>
