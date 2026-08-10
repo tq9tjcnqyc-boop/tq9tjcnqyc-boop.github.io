@@ -95,29 +95,17 @@
             }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
 
-        // TOC 返回恢复（2026-08-11 第三版，针对 iOS Safari）:
+        // TOC 返回恢复（2026-08-11 第四版，针对 iOS Safari）:
         // Safari 原生 hash 返回不恢复滚动位置(已知 bug), 必须 JS 接管。
-        // 但 popstate 里一次 scrollTo 会输给 bfcache 冻结(页面恢复时暂停,
-        // JS 排队到用户触摸才跑, 且原生恢复会覆盖)。所以:
-        // 1) scrollRestoration='manual' — 告诉浏览器别管滚动, 我们接管
-        // 2) 点击目录时记录当前位置(不 preventDefault, hash 导航正常)
-        // 3) 返回时轮询 scrollTo 直到到位 — 冻结解除后 setTimeout 自然继续
+        // scrollRestoration='manual' 告诉浏览器别管滚动, 我们接管。
+        // popstate 时按 URL hash 判断方向:
+        //   有 hash  = 前进 → 滚到对应锚点标题
+        //   无 hash  = 返回 → 滚到 TOC 容器位置 (文章开头, 实时算)
+        // 不存 sessionStorage —— 多轮前进/返回循环时单值+删除会失效。
         try { history.scrollRestoration = 'manual'; } catch (e) {}
-        var TOC_KEY = 'toc-return-y';
-        document.addEventListener('click', function (e) {
-            var a = e.target.closest ? e.target.closest('.toc a[href^="#"]') : null;
-            if (!a) return;
-            // 记录「回到目录」的滚动位置: TOC 容器在文章开头, 取它的
-            // 文档绝对位置(rect.top + scrollY)。不用 window.scrollY——
-            // 点击瞬间原生锚点跳转可能已抢先滚动, 记录到的是标题位置。
-            var toc = document.querySelector('.toc');
-            var y = toc ? toc.getBoundingClientRect().top + window.scrollY : 0;
-            try { sessionStorage.setItem(TOC_KEY, String(Math.max(0, y - 8))); } catch (err) {}
-        });
         function restoreToc() {
-            // 前进方向: URL 有 hash → 滚到对应锚点标题
-            // (scrollRestoration=manual 后浏览器不恢复, 必须自己滚)
             if (location.hash) {
+                // 前进: 滚到锚点标题
                 var id = null;
                 try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { id = location.hash.slice(1); }
                 var el = document.getElementById(id);
@@ -127,12 +115,10 @@
                     return;
                 }
             }
-            // 返回方向: 无 hash → 恢复目录位置
-            var y = null;
-            try { y = parseInt(sessionStorage.getItem(TOC_KEY), 10); } catch (e) {}
-            if (y === null || isNaN(y)) return;
-            try { sessionStorage.removeItem(TOC_KEY); } catch (e) {}
-            scrollToSmoothly(y);
+            // 返回: 滚到 TOC 容器位置 (文章开头固定位置)
+            var toc = document.querySelector('.toc');
+            var y = toc ? toc.getBoundingClientRect().top + window.scrollY : 0;
+            scrollToSmoothly(Math.max(0, y - 8));
         }
         // 通用滚动恢复: 隐藏页面 → 滚动 → 落地后显示 (消除中间帧闪烁)
         function scrollToSmoothly(target) {
