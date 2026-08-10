@@ -201,9 +201,15 @@ html:not([data-theme="dark"]) .chroma .ss {
 }
 
 /* Patent doc figures: center ALL images in post body + their 图N captions.
-   Generic (not h1-sibling scoped) so any doc structure gets centered images. */
+   ⚠️ 关键: PaperMod 设 img{display:block}, text-align 对 block 无效,
+   必须用 margin:auto 居中 (text-align:center 只对 inline 生效) */
 .post-content p:has(> img) {
   text-align: center;
+}
+.post-content p img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 /* 图N 标注: p > strong (专利附图区 "**图1**" 渲染成 <p><strong>图1</strong></p>),
    小字次级色 + 与图片间距。仅当 strong 是段落唯一子元素时生效。 */
