@@ -200,6 +200,15 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
+/* 文章计数器: logo 右侧 */
+.post-count {
+  margin-left: .5rem;
+  font-size: .8em;
+  color: var(--secondary);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 /* Patent doc figures: center ALL images in post body + their 图N captions.
    ⚠️ 关键: PaperMod 设 img{display:block}, text-align 对 block 无效,
    必须用 margin:auto 居中 (text-align:center 只对 inline 生效) */
