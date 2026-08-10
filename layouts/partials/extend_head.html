@@ -36,16 +36,18 @@
                     inners[j].style.borderRadius = 'var(--radius)';
                 }
             }
-            // Bare <pre class="chroma"> (no .highlight wrapper, e.g. some
-            // siyuan-sourced posts): the PaperMod chroma theme is DARK, so in
-            // light mode give it a proper light card instead of black bg.
-            var bare = document.querySelectorAll('pre.chroma:not(.highlight pre.chroma)');
-            for (var k = 0; k < bare.length; k++) {
-                bare[k].style.background = 'var(--code-bg)';
-                bare[k].style.color = 'var(--content)';
-                bare[k].style.border = '1px solid var(--border)';
-                bare[k].style.borderRadius = 'var(--radius)';
-                bare[k].style.padding = '12px 16px';
+            // Bare <pre class="chroma"> (no .highlight wrapper): PaperMod's
+            // chroma theme is DARK, so in light mode give it a light card.
+            // NOTE: query all pre.chroma, then skip ones inside .highlight —
+            // avoids :not() complex selectors (unsupported in older Safari).
+            var all = document.querySelectorAll('pre.chroma');
+            for (var k = 0; k < all.length; k++) {
+                if (all[k].closest('.highlight')) continue;
+                all[k].style.background = 'var(--code-bg)';
+                all[k].style.color = 'var(--content)';
+                all[k].style.border = '1px solid var(--border)';
+                all[k].style.borderRadius = 'var(--radius)';
+                all[k].style.padding = '12px 16px';
             }
         }
         if (document.readyState === 'loading') {
@@ -60,9 +62,10 @@
             }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
 
-        // TOC: iOS Safari 锚点跳转返回会丢滚动位置(回到顶部)。
-        // 点击目录链接用 scrollIntoView 平滑滚动 + replaceState 更新 URL,
-        // 不产生新历史条目 → 返回/左滑时保持目录所在位置。
+        // TOC: iOS Safari 锚点跳转后返回/左滑会丢滚动位置(回到顶部)。
+        // 方案: 点击目录时记住当前位置(目录处), pushState 新增历史条目,
+        // 平滑滚动到标题; 返回时 popstate 触发, 恢复目录位置。
+        var tocScrollY = null;
         function bindToc() {
             var toc = document.querySelector('.toc');
             if (!toc) return;
@@ -73,9 +76,17 @@
                 var el = document.getElementById(id);
                 if (!el) return;
                 e.preventDefault();
+                tocScrollY = window.scrollY;
                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                if (history.replaceState) {
-                    history.replaceState(null, '', a.getAttribute('href'));
+                if (history.pushState) {
+                    history.pushState(null, '', a.getAttribute('href'));
+                }
+            });
+            // 返回/左滑: URL 从 #hash 回到无 hash, 恢复目录位置
+            window.addEventListener('popstate', function () {
+                if (tocScrollY !== null) {
+                    window.scrollTo(0, tocScrollY);
+                    tocScrollY = null;
                 }
             });
         }
