@@ -1,7 +1,7 @@
 baseURL = 'https://tq9tjcnqyc-boop.github.io/'
 languageCode = 'zh-cn'
 defaultContentLanguage = 'zh'
-title = '壹句'
+title = '专利档案库'
 theme = 'PaperMod'
 enableInlineShortcodes = true
 enableRobotsTXT = true
