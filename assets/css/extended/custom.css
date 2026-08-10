@@ -41,11 +41,15 @@ html:not([data-theme="dark"]) .list {
 html:not([data-theme="dark"]) .post-entry {
   background: var(--code-bg);
 }
-/* code blocks: system monospace stack (no webfont download) */
+/* code blocks: system monospace for ASCII + SAME CJK font as body
+   (equi-width fonts have no CJK glyphs; without this, Chinese in comments
+   falls back to Songti while body uses PingFang → two-font look). */
 pre,
 code,
 .chroma {
-  font-family: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  font-family: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas,
+               'CJK System', 'PingFang SC', 'Hiragino Sans GB',
+               'Microsoft YaHei', monospace;
 }
 /* light theme: code block = light bg matching cards, Catppuccin Latte tokens.
    PaperMod ships hardcoded dark chroma-styles.css (Mocha) that ignores theme.
