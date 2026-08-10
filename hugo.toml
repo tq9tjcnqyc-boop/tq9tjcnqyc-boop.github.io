@@ -12,6 +12,9 @@ paginate = 9
 
 cleanDestinationDir = true
 disableKinds = ['taxonomy', 'term']
+# 构建含「未来」文章: slug 时间戳可能晚于当前时刻, 默认 buildFuture=false
+# 会把它们当未来文章跳过(2026-08-10 实测 100 篇只剩 8 篇)。开启后全量构建。
+buildFuture = true
 
 [params]
   env = 'production'
