@@ -27,7 +27,7 @@ jobs:
           hugo-version: '0.164.0'
           extended: true
       - name: Build
-        run: hugo --minify
+        run: hugo --minify --buildFuture
       - name: Build search index (Pagefind)
         run: |
           npx --yes pagefind@1.5.2
