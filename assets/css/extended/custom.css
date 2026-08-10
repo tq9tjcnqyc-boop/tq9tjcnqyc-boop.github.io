@@ -200,10 +200,12 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
-/* Patent doc figures: center images and their 图N captions under 说明书附图.
-   Structure: h1#说明书附图 followed by alternating <p><img></p> <p><strong>图N</strong></p>.
-   Scope via ~ so captions anywhere else in the doc stay untouched. */
-.post-content h1[id="说明书附图"] ~ p {
+/* Patent doc figures: center images and their 图N captions.
+   - 摘要附图 (first image, under #说明书摘要)
+   - 说明书附图 (under #说明书附图): alternating <p><img></p> <p><strong>图N</strong></p>
+   Scope via ~ so other content stays untouched. */
+.post-content h1[id="说明书摘要"] ~ p:has(> img),
+.post-content h1[id="说明书附图"] ~ p:has(> img) {
   text-align: center;
 }
 .post-content h1[id="说明书附图"] ~ p > strong {
@@ -212,6 +214,7 @@ html:not([data-theme="dark"]) .chroma .ss {
   font-weight: 600;
   font-size: .95rem;
   color: var(--secondary);
+  text-align: center;
 }
 
 /* ---------- Pagefind 搜索页样式 ---------- */
