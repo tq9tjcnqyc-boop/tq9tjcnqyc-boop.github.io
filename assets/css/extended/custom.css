@@ -200,15 +200,14 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
-/* Patent doc figures: center images and their 图N captions.
-   - 摘要附图 (first image, under #说明书摘要)
-   - 说明书附图 (under #说明书附图): alternating <p><img></p> <p><strong>图N</strong></p>
-   Scope via ~ so other content stays untouched. */
-.post-content h1[id="说明书摘要"] ~ p:has(> img),
-.post-content h1[id="说明书附图"] ~ p:has(> img) {
+/* Patent doc figures: center ALL images in post body + their 图N captions.
+   Generic (not h1-sibling scoped) so any doc structure gets centered images. */
+.post-content p:has(> img) {
   text-align: center;
 }
-.post-content h1[id="说明书附图"] ~ p > strong {
+/* 图N 标注: p > strong (专利附图区 "**图1**" 渲染成 <p><strong>图1</strong></p>),
+   小字次级色 + 与图片间距。仅当 strong 是段落唯一子元素时生效。 */
+.post-content p > strong:only-child {
   display: block;
   margin-top: .4rem;
   font-weight: 600;
