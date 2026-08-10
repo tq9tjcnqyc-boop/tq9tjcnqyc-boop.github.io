@@ -295,7 +295,25 @@ html[data-theme="dark"] .pagefind-ui__result-excerpt mark {
   padding: 10px 0;
 }
 
-/* ---------- 滚动条 ---------- */
+/* ---------- 代码块亮模式浅底 ---------- */
+/* PaperMod 默认 --code-block-bg 亮暗都是深色(近黑), 亮模式下代码框是
+   黑底白字。覆盖为亮模式浅灰底深色字。
+   注意: 不能只改变量——@media(prefers-color-scheme:dark) 会在系统暗色
+   时把变量抢回去(即使 data-theme=light)。直接给 code 写死浅色背景,
+   用 [data-theme=light] 精确限定, 暗模式([data-theme=dark])不受影响。 */
+html[data-theme="light"] .md-content pre code,
+html:not([data-theme="dark"]) .md-content pre code {
+  background: rgb(245, 245, 245) !important;
+  color: rgb(31, 31, 31) !important;
+  border-radius: var(--radius);
+}
+html[data-theme="light"] .md-content pre,
+html:not([data-theme="dark"]) .md-content pre {
+  background: rgb(245, 245, 245) !important;
+  border-radius: var(--radius);
+}
+
+/* ---------- 代码块滚动条 ---------- */
 /* 页面整体滚动条: 亮模式浅灰, 暗模式比背景亮一档(不再乌黑一片)。
    同时覆盖代码块等局部滚动容器。 */
 ::-webkit-scrollbar {
