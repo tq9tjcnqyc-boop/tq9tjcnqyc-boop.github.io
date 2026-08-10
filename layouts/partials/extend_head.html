@@ -119,14 +119,29 @@
             try { y = parseInt(sessionStorage.getItem(TOC_KEY), 10); } catch (e) {}
             if (y === null || isNaN(y)) return;
             try { sessionStorage.removeItem(TOC_KEY); } catch (e) {}
+            // 消除闪烁: 恢复过程中隐藏页面, 滚动落地后再显示。
+            // 否则用户会看到「标题位置 → 跳到目录位置」的中间帧。
+            var root = document.documentElement;
+            var prevVis = root.style.visibility;
+            root.style.visibility = 'hidden';
+            var shown = false;
+            function show() {
+                if (shown) return;
+                shown = true;
+                root.style.visibility = prevVis;
+            }
             var attempts = 0;
             function attempt() {
-                if (attempts++ > 30) return; // 3 秒上限
+                if (attempts++ > 30) { show(); return; } // 3 秒上限, 兜底显示
                 var maxY = document.documentElement.scrollHeight - window.innerHeight;
                 var target = Math.max(0, Math.min(y, maxY));
                 window.scrollTo(0, target);
                 if (Math.abs(window.scrollY - target) > 2) {
                     setTimeout(attempt, 100); // 没到位: bfcache 冻结中, 等解冻再试
+                } else {
+                    // 到位了: 等一帧渲染后显示, 保证用户看到的就是最终位置
+                    requestAnimationFrame(show);
+                    setTimeout(show, 50);
                 }
             }
             attempt();
