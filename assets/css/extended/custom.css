@@ -1,7 +1,7 @@
 /* TermFont: 子集 + 完整字体双 font-face, unicode-range 分区。
-   子集(1266 字, 263KB)覆盖全站用字所在区间 → 首访秒开;
-   完整字体(900KB)覆盖其余区间 → 任何新字符都有 termfont, 永不系统 fallback。
-   打开网页即 preload 两个字体(见 extend_head), 极速呈现。 */
+   font-display: swap = 先 fallback 秒开, 字体加载完自动切换(无需点击/刷新)。
+   子集(1266 字, 263KB)preload 极速加载 → 全站现有内容打开即 termfont;
+   完整字体(900KB)不 preload, 仅在遇到子集外生僻字时按需下载兜底。 */
 @font-face {
   font-family: 'TermFont';
   src: url('/fonts/termfont-400-subset.woff2') format('woff2');
