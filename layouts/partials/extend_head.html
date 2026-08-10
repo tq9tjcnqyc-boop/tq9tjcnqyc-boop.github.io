@@ -1,5 +1,19 @@
 <script>
     (function () {
+        // 图片立即加载: Hugo 默认 loading=lazy, 专利附图是内容核心,
+        // 懒加载导致手机快速翻页时图片空白/未定位(用户反馈"显示不全/不居中")。
+        // 全部改为 eager, 打开页面即全部加载。
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.post-content img').forEach(function (im) {
+                    im.loading = 'eager';
+                });
+            });
+        } else {
+            document.querySelectorAll('.post-content img').forEach(function (im) {
+                im.loading = 'eager';
+            });
+        }
         // 自动刷新检测: GitHub Pages CDN 缓存 HTML 10 分钟, 部署后刷新可能
         // 拿到旧版。用构建时间戳做版本号, localStorage 比对, 版本变了自动 reload。
         // ⚠️ 必须限制为「每会话最多 reload 一次」: CDN 缓存抖动时 reload 后
