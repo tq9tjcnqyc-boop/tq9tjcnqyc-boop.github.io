@@ -1,5 +1,31 @@
 /* 字体策略: 跟随浏览器/系统默认(不加载自定义 webfont, 页面零字体请求)。
-   代码块用系统等宽栈(见下方 pre/code 定义)。 */
+   CJK 字符 → 系统默认中文字体 (local, 零下载);
+   拉丁字母/数字 → 等宽 (ui-monospace) —— 中文里夹的英文自动等宽。 */
+@font-face {
+  font-family: 'CJK System';
+  src: local('PingFang SC'), local('Hiragino Sans GB'),
+       local('Songti SC'), local('Microsoft YaHei'),
+       local('Noto Sans CJK SC'), local('Source Han Sans SC');
+  font-weight: 400;
+  unicode-range: U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF,
+                 U+3000-303F, U+FF00-FFEF, U+20000-2A6DF;
+}
+@font-face {
+  font-family: 'CJK System';
+  src: local('PingFang SC'), local('Hiragino Sans GB'),
+       local('Songti SC'), local('Microsoft YaHei'),
+       local('Noto Sans CJK SC'), local('Source Han Sans SC');
+  font-weight: 700;
+  unicode-range: U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF,
+                 U+3000-303F, U+FF00-FFEF, U+20000-2A6DF;
+}
+html {
+  font-family: 'CJK System', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+/* body 显式覆盖主题的 -apple-system 栈: CJK 走系统中文, 英文走等宽 */
+body {
+  font-family: 'CJK System', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
 /* keep rubber-band overscroll feel, blend revealed strip with page bg:
    light = white (home list bg after swap), dark = theme color */
 html {

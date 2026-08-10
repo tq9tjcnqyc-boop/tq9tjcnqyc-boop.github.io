@@ -96,17 +96,28 @@
                 if (!el) return;
                 e.preventDefault();
                 tocScrollY = window.scrollY;
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                var targetY = el.getBoundingClientRect().top + window.scrollY;
+                // instant 滚动(无动画): 无 smooth 竞态, 返回时 popstate 恢复
+                // 一定生效。带 12px 留白让标题不贴顶。
+                window.scrollTo(0, targetY - 12);
                 if (history.pushState) {
                     history.pushState(null, '', a.getAttribute('href'));
                 }
             });
-            // 返回/左滑: URL 从 #hash 回到无 hash, 恢复目录位置
-            window.addEventListener('popstate', function () {
-                if (tocScrollY !== null) {
-                    window.scrollTo(0, tocScrollY);
-                    tocScrollY = null;
-                }
+            // 返回/左滑: URL 从 #hash 回到无 hash, 恢复目录位置。
+            function restoreToc() {
+                if (tocScrollY === null) return;
+                var y = tocScrollY;
+                tocScrollY = null;
+                var restore = function () {
+                    window.scrollTo(0, y);
+                };
+                requestAnimationFrame(restore);
+                setTimeout(restore, 120);
+            }
+            window.addEventListener('popstate', restoreToc);
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) restoreToc(); // bfcache 后退恢复
             });
         }
         if (document.readyState === 'loading') {

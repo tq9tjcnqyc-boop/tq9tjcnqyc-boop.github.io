@@ -11,9 +11,11 @@
     </header>
     <div id="search"></div>
 </div>
+<script src="/pagefind/pagefind-ui.js"></script>
 <script>
-    window.addEventListener('DOMContentLoaded', function () {
-        if (!window.PagefindUI) return;
+        // 脚本在 body 底部, DOM 已解析完 + pagefind-ui.js 已执行 → 立即初始化,
+        // 不等 DOMContentLoaded(省一拍延迟)。首次访问资源已 preload。
+        if (!window.PagefindUI) { throw new Error('pagefind-ui not loaded'); }
 
         // --- 已访问链接记忆 (内存) ---
         // 只在当前页面浏览期间生效: 点击过的链接标灰, 刷新/重新进入即重置。
@@ -83,7 +85,5 @@
             paintVisited();
         });
         observer.observe(target, { childList: true, subtree: true });
-    });
 </script>
-<script src="/pagefind/pagefind-ui.js"></script>
 {{ end }}
