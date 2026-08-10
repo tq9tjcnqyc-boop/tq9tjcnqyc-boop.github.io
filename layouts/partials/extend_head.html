@@ -95,39 +95,12 @@
             }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
 
-        // TOC 返回恢复: 保留原生锚点导航(不 preventDefault), 返回时
-        // 强制滚回页面顶部(y=0)—— TOC 在文章开头, 回顶部必见目录。
-        // ⚠️ 2026-08-11 实测: click handler 里取 scrollY 时原生锚点跳转
-        // 已抢先发生(记录到的是标题位置), 恢复无效。且 preventDefault+
-        // pushState 方案破坏原生返回。所以: 不拦截点击, 返回时滚回顶部。
-        var tocRecorded = false;
-        function bindToc() {
-            var toc = document.querySelector('.toc');
-            if (!toc) return;
-            toc.addEventListener('click', function (e) {
-                var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
-                if (!a) return;
-                // 不 preventDefault: 原生跳到锚点
-                tocRecorded = true;
-            });
-            // 返回: popstate/hashchange → 滚回顶部(目录位置)
-            function restoreToc() {
-                if (!tocRecorded) return;
-                tocRecorded = false;
-                var restore = function () { window.scrollTo(0, 0); };
-                requestAnimationFrame(restore);
-                setTimeout(restore, 100);
-            }
-            window.addEventListener('popstate', restoreToc);
-            window.addEventListener('hashchange', restoreToc);
-            window.addEventListener('pageshow', function (e) {
-                if (e.persisted) restoreToc();
-            });
-        }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', bindToc);
-        } else {
-            bindToc();
-        }
+        // TOC 返回: 完全交给浏览器原生处理, 不做任何 JS 干预。
+        // ⚠️ 2026-08-11 Safari 实测: 任何 popstate/hashchange 里的 scrollTo
+        // 都会跟 Safari bfcache 原生滚动恢复打架——恢复时页面冻结,
+        // JS 排队到用户触摸才执行(表现: 返回后停止渲染, 动一下才渲染),
+        // 且 scrollTo 会被原生恢复覆盖。Safari 原生 hash 导航返回
+        // 本来就恢复滚动位置, 删掉所有干预代码。
+        // (此段已移除, 留空占位)
     })();
 </script>
