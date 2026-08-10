@@ -1,13 +1,17 @@
 @font-face {
   font-family: 'TermFont';
-  src: url('/fonts/termfont-400.woff2') format('woff2');
+  /* 子集优先: 覆盖网站实际用字(1125 汉字+标点), 261KB 首访快;
+     原字体 900KB 有缓存时浏览器自动选更完整的它。 */
+  src: url('/fonts/termfont-400-subset.woff2') format('woff2'),
+       url('/fonts/termfont-400.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: optional;
 }
 @font-face {
   font-family: 'TermFont';
-  src: url('/fonts/termfont-700.woff2') format('woff2');
+  src: url('/fonts/termfont-700-subset.woff2') format('woff2'),
+       url('/fonts/termfont-700.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: optional;
