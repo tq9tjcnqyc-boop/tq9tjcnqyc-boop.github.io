@@ -1,5 +1,20 @@
 <script>
     (function () {
+        // 自动刷新检测: GitHub Pages CDN 缓存 HTML 10 分钟, 部署后刷新可能
+        // 拿到旧版。用构建时间戳做版本号, localStorage 比对, 版本变了自动 reload。
+        // (CSS/JS 带内容 hash 指纹不受影响, 这里只管 HTML)
+        var VER_KEY = 'site-ver';
+        var THIS_VER = {{ now.Unix }};
+        try {
+            var old = localStorage.getItem(VER_KEY);
+            if (old && old !== String(THIS_VER)) {
+                localStorage.setItem(VER_KEY, String(THIS_VER));
+                location.reload(true);
+            } else if (!old) {
+                localStorage.setItem(VER_KEY, String(THIS_VER));
+            }
+        } catch (e) {}
+
         var meta = document.querySelector('meta[name="theme-color"]');
         if (meta) {
             // PaperMod theme colors: light = white (home bg), dark = rgb(29,30,32)
