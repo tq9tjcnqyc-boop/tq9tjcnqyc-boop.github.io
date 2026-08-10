@@ -200,6 +200,20 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
+/* Patent doc figures: center images and their 图N captions under 说明书附图.
+   Structure: h1#说明书附图 followed by alternating <p><img></p> <p><strong>图N</strong></p>.
+   Scope via ~ so captions anywhere else in the doc stay untouched. */
+.post-content h1[id="说明书附图"] ~ p {
+  text-align: center;
+}
+.post-content h1[id="说明书附图"] ~ p > strong {
+  display: block;
+  margin-top: .4rem;
+  font-weight: 600;
+  font-size: .95rem;
+  color: var(--secondary);
+}
+
 /* ---------- Pagefind 搜索页样式 ---------- */
 /* 搜索框: 有边框、圆角、与主题协调。
    聚焦时只变边框颜色, 背景保持浅灰不变(避免亮模式下 --entry 白色与页面背景混淆) */
