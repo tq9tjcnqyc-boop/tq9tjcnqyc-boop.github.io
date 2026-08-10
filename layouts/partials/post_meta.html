@@ -1,0 +1,22 @@
+{{- $scratch := newScratch }}
+
+{{- if not .Date.IsZero -}}
+    {{- $scratch.Add "meta" (slice (printf "<span title='%s'>%s</span>" (.Date) (.Date | time.Format (default ":date_long" site.Params.DateFormat)))) }}
+{{- end }}
+
+{{- /* 自定义: 阅读时间改为字符数 (中文站, 字数比分钟数更直观) */ -}}
+{{- if (.Param "ShowReadingTime") -}}
+    {{- $scratch.Add "meta" (slice (printf "<span>%d 字</span>" (strings.RuneCount .Content))) }}
+{{- end }}
+
+{{- if not (.Param "hideAuthor") -}}
+    {{- with (partial "author.html" .) }}
+        {{- $scratch.Add "meta" (slice (printf "<span>%s</span>" .)) }}
+    {{- end }}
+{{- end }}
+
+{{/* Combine all meta information into a single string with separators and render it as HTML.*/}}
+
+{{- with ($scratch.Get "meta") }}
+    {{- delimit . "&nbsp;·&nbsp;" | safeHTML -}}
+{{- end -}}
