@@ -1,20 +1,46 @@
+/* TermFont: 子集 + 完整字体双 font-face, unicode-range 分区。
+   子集(1266 字, 263KB)覆盖全站用字所在区间 → 首访秒开;
+   完整字体(900KB)覆盖其余区间 → 任何新字符都有 termfont, 永不系统 fallback。
+   打开网页即 preload 两个字体(见 extend_head), 极速呈现。 */
 @font-face {
   font-family: 'TermFont';
-  /* 子集优先: 覆盖网站实际用字(1125 汉字+标点), 261KB 首访快;
-     原字体 900KB 有缓存时浏览器自动选更完整的它。 */
-  src: url('/fonts/termfont-400-subset.woff2') format('woff2'),
-       url('/fonts/termfont-400.woff2') format('woff2');
+  src: url('/fonts/termfont-400-subset.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2000-206F, U+2190-21FF,
+                 U+2200-22FF, U+2460-24FF, U+2500-257F, U+25A0-25FF,
+                 U+3000-303F, U+4E00-9FFF, U+FF00-FFEF;
 }
 @font-face {
   font-family: 'TermFont';
-  src: url('/fonts/termfont-700-subset.woff2') format('woff2'),
-       url('/fonts/termfont-700.woff2') format('woff2');
+  src: url('/fonts/termfont-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-001F, U+0080-009F, U+0100-1FFF, U+2070-218F,
+                 U+2300-245F, U+2580-259F, U+2600-2FFF, U+3040-4DFF,
+                 U+A000-FFEF, U+10000-10FFFF;
+}
+@font-face {
+  font-family: 'TermFont';
+  src: url('/fonts/termfont-700-subset.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2000-206F, U+2190-21FF,
+                 U+2200-22FF, U+2460-24FF, U+2500-257F, U+25A0-25FF,
+                 U+3000-303F, U+4E00-9FFF, U+FF00-FFEF;
+}
+@font-face {
+  font-family: 'TermFont';
+  src: url('/fonts/termfont-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-001F, U+0080-009F, U+0100-1FFF, U+2070-218F,
+                 U+2300-245F, U+2580-259F, U+2600-2FFF, U+3040-4DFF,
+                 U+A000-FFEF, U+10000-10FFFF;
 }
 body {
   font-family: 'TermFont', 'Songti SC', 'PingFang SC', serif;
