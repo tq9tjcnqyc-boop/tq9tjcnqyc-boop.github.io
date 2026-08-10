@@ -115,12 +115,27 @@
             try { sessionStorage.setItem(TOC_KEY, String(Math.max(0, y - 8))); } catch (err) {}
         });
         function restoreToc() {
+            // 前进方向: URL 有 hash → 滚到对应锚点标题
+            // (scrollRestoration=manual 后浏览器不恢复, 必须自己滚)
+            if (location.hash) {
+                var id = null;
+                try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { id = location.hash.slice(1); }
+                var el = document.getElementById(id);
+                if (el) {
+                    var targetY = el.getBoundingClientRect().top + window.scrollY - 12;
+                    scrollToSmoothly(targetY);
+                    return;
+                }
+            }
+            // 返回方向: 无 hash → 恢复目录位置
             var y = null;
             try { y = parseInt(sessionStorage.getItem(TOC_KEY), 10); } catch (e) {}
             if (y === null || isNaN(y)) return;
             try { sessionStorage.removeItem(TOC_KEY); } catch (e) {}
-            // 消除闪烁: 恢复过程中隐藏页面, 滚动落地后再显示。
-            // 否则用户会看到「标题位置 → 跳到目录位置」的中间帧。
+            scrollToSmoothly(y);
+        }
+        // 通用滚动恢复: 隐藏页面 → 滚动 → 落地后显示 (消除中间帧闪烁)
+        function scrollToSmoothly(target) {
             var root = document.documentElement;
             var prevVis = root.style.visibility;
             root.style.visibility = 'hidden';
@@ -134,9 +149,9 @@
             function attempt() {
                 if (attempts++ > 30) { show(); return; } // 3 秒上限, 兜底显示
                 var maxY = document.documentElement.scrollHeight - window.innerHeight;
-                var target = Math.max(0, Math.min(y, maxY));
-                window.scrollTo(0, target);
-                if (Math.abs(window.scrollY - target) > 2) {
+                var t = Math.max(0, Math.min(target, maxY));
+                window.scrollTo(0, t);
+                if (Math.abs(window.scrollY - t) > 2) {
                     setTimeout(attempt, 100); // 没到位: bfcache 冻结中, 等解冻再试
                 } else {
                     // 到位了: 等一帧渲染后显示, 保证用户看到的就是最终位置
