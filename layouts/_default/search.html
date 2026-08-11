@@ -99,9 +99,23 @@
                 }
                 metaEl.textContent = '搜索「' + q + '」共 ' + list.length + ' 条结果';
                 metaEl.hidden = false;
-                list.forEach(function (r) {
-                    r.data().then(function (d) {
-                        if (input.value.trim() !== q) return;
+                // 并行取全部 data() 后统一排序渲染 (2026-08-11):
+                // 1) 标题含完整查询词优先 (修「搜1出106」: 精确词匹配排前面)
+                // 2) 状态优先: 授权 > 驳回 > 普通 (与首页置顶逻辑一致)
+                Promise.all(list.map(function (r) { return r.data(); })).then(function (docs) {
+                    if (input.value.trim() !== q) return;
+                    docs.sort(function (a, b) {
+                        var ta = (a.meta && a.meta.title) || '';
+                        var tb = (b.meta && b.meta.title) || '';
+                        var ea = ta.indexOf(q) > -1 ? 1 : 0;
+                        var eb = tb.indexOf(q) > -1 ? 1 : 0;
+                        if (ea !== eb) return eb - ea;
+                        var ga = (a.filters && a.filters.granted && a.filters.granted.length > 0) ? 2 : ((a.filters && a.filters.rejected && a.filters.rejected.length > 0) ? 1 : 0);
+                        var gb = (b.filters && b.filters.granted && b.filters.granted.length > 0) ? 2 : ((b.filters && b.filters.rejected && b.filters.rejected.length > 0) ? 1 : 0);
+                        if (ga !== gb) return gb - ga;
+                        return 0;  // 保持 Pagefind 相关性顺序
+                    });
+                    docs.forEach(function (d) {
                         resultsEl.appendChild(renderResult(d));
                     });
                 });
