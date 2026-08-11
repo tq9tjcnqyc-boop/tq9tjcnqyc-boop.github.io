@@ -43,14 +43,18 @@
 {{- if .IsHome }}
 {{- $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true"  }}
+{{- /* 2026-08-11: 主页只显示已授权专利 (granted=true), 驳回/普通不进主页 */ -}}
+{{- $pages = where $pages ".Params.granted" true }}
 {{- end }}
 
-{{- /* 状态优先排序: 授权(granted) → 驳回(rejected) → 普通, 各组内保持日期倒序 (2026-08-11) */}}
+{{- /* 非主页(标签/分类页): 显示全部文章, 授权 → 驳回 → 普通置顶排序 (2026-08-11) */ -}}
+{{- if not .IsHome }}
 {{- $granted := where $pages ".Params.granted" true }}
 {{- $rejected := where $pages ".Params.rejected" true }}
 {{- $others := where $pages ".Params.granted" "ne" true }}
 {{- $others = where $others ".Params.rejected" "ne" true }}
 {{- $pages = $granted | append $rejected | append $others }}
+{{- end }}
 
 {{- $paginator := .Paginate $pages }}
 
