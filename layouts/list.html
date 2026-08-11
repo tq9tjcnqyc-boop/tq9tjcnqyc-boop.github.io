@@ -43,19 +43,22 @@
 {{- if .IsHome }}
 {{- $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true"  }}
-{{- /* 2026-08-11: 主页只显示 授权+驳回, 分区展示 (普通不进主页) */ -}}
+{{- /* 2026-08-11: 主页只显示 授权+驳回+主动撤回, 分区展示 (普通不进主页) */ -}}
 {{- $granted := where $pages ".Params.granted" true }}
 {{- $rejected := where $pages ".Params.rejected" true }}
-{{- $pages = $granted | append $rejected }}
+{{- $withdrawn := where $pages ".Params.withdrawn" true }}
+{{- $pages = $granted | append $rejected | append $withdrawn }}
 {{- end }}
 
-{{- /* 非主页(标签/分类页): 显示全部文章, 授权 → 驳回 → 普通置顶排序 (2026-08-11) */ -}}
+{{- /* 非主页(标签/分类页): 显示全部文章, 授权 → 驳回 → 撤回 → 普通置顶排序 (2026-08-11) */ -}}
 {{- if not .IsHome }}
 {{- $granted := where $pages ".Params.granted" true }}
 {{- $rejected := where $pages ".Params.rejected" true }}
+{{- $withdrawn := where $pages ".Params.withdrawn" true }}
 {{- $others := where $pages ".Params.granted" "ne" true }}
 {{- $others = where $others ".Params.rejected" "ne" true }}
-{{- $pages = $granted | append $rejected | append $others }}
+{{- $others = where $others ".Params.withdrawn" "ne" true }}
+{{- $pages = $granted | append $rejected | append $withdrawn | append $others }}
 {{- end }}
 
 {{- /* 2026-08-11 主页: 区块分组展示 — 「已授权专利」区 + 「已驳回专利」区, 不再逐篇打 ✅/❌。
@@ -73,12 +76,13 @@
 
 {{- range $index, $page := $paginator.Pages }}
 
-{{- /* 2026-08-11 主页区块标题: 状态变化时插「已授权专利」/「已驳回专利」区标题, 不再逐篇打 ✅/❌ */ -}}
+{{- /* 2026-08-11 主页区块标题: 状态变化时插「已授权专利」/「已驳回专利」/「主动撤回专利」区标题, 不再逐篇打 ✅/❌ */ -}}
 {{- $st := "normal" }}
-{{- if $page.Params.granted }}{{ $st = "granted" }}{{- else if $page.Params.rejected }}{{ $st = "rejected" }}{{- end }}
+{{- if $page.Params.granted }}{{ $st = "granted" }}{{- else if $page.Params.rejected }}{{ $st = "rejected" }}{{- else if $page.Params.withdrawn }}{{ $st = "withdrawn" }}{{- end }}
 {{- if and $.IsHome (ne $st $prevStatus) }}
 {{- if eq $st "granted" }}<h2 class="list-section-title">已授权专利</h2>
 {{- else if eq $st "rejected" }}<h2 class="list-section-title">已驳回专利</h2>
+{{- else if eq $st "withdrawn" }}<h2 class="list-section-title">主动撤回专利</h2>
 {{- end }}
 {{- end }}
 {{- $prevStatus = $st }}
