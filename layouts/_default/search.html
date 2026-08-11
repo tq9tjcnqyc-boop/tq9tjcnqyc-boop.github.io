@@ -212,7 +212,8 @@
                 metaEl.hidden = false;
                 return;
             }
-                metaEl.textContent = '搜索「' + q + '」共 ' + all.length + ' 条结果';
+                // 2026-08-11: 初始显示「搜索中」, 全部加载完才显示最终全字匹配数 (避免数字跳变)
+                metaEl.textContent = '正在筛选「' + q + '」的全字匹配结果…';
                 metaEl.hidden = false;
                 // 状态集合 (id → 2=授权 1=驳回 0=普通)
                 var grantedIds = {};
@@ -265,12 +266,12 @@
                     }
                 }
                 // 渐进渲染: 首批 BATCH 条并行取 data() 快出, 其余滚动到底再加载 (2026-08-11)
-                // (全字匹配优先排序, 不过滤; 无限滚动: 和首页 isf-loader 一致)
-                // 2026-08-11: 全字匹配改为「排序优先」— 所有结果都显示,
-                // 标题/摘要完整包含查询词的排最前, 其余按状态+相关性排后面
+                // (2026-08-11: 一律全字匹配 — 只渲染标题/摘要/正文完整包含查询词的结果,
+                //  其余跳过; 结果少加载快。数字查询只认独立数字, 不匹配 106/101 里的 1)
                 var idx = 0;
                 var loading = false;
                 var allDone = false;
+                var shownCount = 0;  // 实际渲染的全字匹配条数
                 function renderNextBatch() {
                     if (loading || allDone) return;
                     var batch = list.slice(idx, idx + BATCH);
@@ -278,14 +279,20 @@
                         allDone = true;
                         loader.classList.remove('visible');
                         endMark.classList.add('visible');
-                        return;  // meta 数字保持初始值, 不跳变 (2026-08-11)
+                        // 全部加载完才显示最终数, 避免数字跳变 (2026-08-11)
+                        metaEl.textContent = shownCount
+                            ? '搜索「' + q + '」共 ' + shownCount + ' 条全字匹配结果'
+                            : '没有找到「' + q + '」全字匹配的内容';
+                        return;
                     }
                     loading = true;
                     loader.classList.add('visible');
                     idx += BATCH;
                     Promise.all(batch.map(function (r) { return r.data(); })).then(function (docs) {
                         if (myToken !== searchToken) return;  // 过期搜索, 丢弃 (2026-08-11)
-                        docs.forEach(insertDoc);  // 全部渲染, 不过滤 (2026-08-11)
+                        var exactDocs = docs.filter(function (d) { return sortKey(d).exact === 1; });
+                        shownCount += exactDocs.length;
+                        exactDocs.forEach(insertDoc);
                         loader.classList.remove('visible');
                         loading = false;
                         // 内容不足一屏时自动继续加载, 否则等滚动触发 (2026-08-11)
