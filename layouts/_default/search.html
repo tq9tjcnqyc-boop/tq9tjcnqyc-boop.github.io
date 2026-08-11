@@ -55,6 +55,47 @@
         return pagefindPromise;
     }
 
+    // 2026-08-11 预热: 页面加载后立即初始化 Pagefind (不等用户点击),
+    // 首次搜索时索引/wasm 已就绪, 省掉 1-3s 初始化等待
+    function prewarm() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                getPagefind().catch(function () {});
+            });
+        } else {
+            getPagefind().catch(function () {});
+        }
+        // 页面空闲时再预取全部 fragment (840KB), 触发浏览器 HTTP 缓存
+        // 之后 data() 全命中缓存, 滚动加载秒出
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(function () { prefetchFragments(); }, { timeout: 3000 });
+        } else {
+            setTimeout(prefetchFragments, 1500);
+        }
+    }
+    // 预取全部 fragment 到浏览器 HTTP 缓存 (后台并行, 不阻塞)
+    // 构建时 gen_fragments.sh 生成 /pagefind/fragments.json (全部文件名)
+    function prefetchFragments() {
+        if (window.__fragPrefetched) return;
+        window.__fragPrefetched = true;
+        fetch('/pagefind/fragments.json').then(function (r) { return r.json(); }).then(function (files) {
+            if (!files || !files.length) return;
+            var idx = 0;
+            var CONC = 20;  // 并发预取数 (避免一次性打爆连接)
+            function next() {
+                while (idx < files.length && CONC > 0) {
+                    var n = idx++;
+                    CONC--;
+                    fetch('/pagefind/' + files[n], { cache: 'force-cache' })
+                        .then(function () { CONC++; next(); })
+                        .catch(function () { CONC++; next(); });
+                }
+            }
+            next();
+        }).catch(function () {});
+    }
+    prewarm();
+
     // 数字查询自定义摘要: 从正文定位独立数字(如 "1、"), 截取上下文, 高亮该数字本身
     // (Pagefind 对数字前缀匹配, excerpt 会高亮 101/106 这种, 用户要求高亮独立数字)
     function buildNumExcerpt(d, q) {
@@ -106,10 +147,24 @@
     var BATCH = 12;  // 渐进渲染批大小: 首批快出, 后续后台补全 (不砍结果数)
     var searchBtn = document.getElementById('search-btn');
     var rendered = [];  // 已渲染 doc 数组 (保持有序) — 提升到外层供点击导航读取 (2026-08-11)
+    var searchToken = 0;  // 每次搜索递增, 丢弃过期异步结果 (2026-08-11 修复双 end bug)
+    // loader / end 单例: 只创建一次, 搜索时切换显隐 (2026-08-11 修复快速连点双 end)
+    var loader = document.createElement('div');
+    loader.className = 'isf-loader';
+    loader.innerHTML = '<span class="isf-spinner"></span><span>加载中…</span>';
+    var endMark = document.createElement('div');
+    endMark.className = 'isf-end';
+    endMark.textContent = '— 已加载全部结果 —';
+    resultsEl.parentNode.appendChild(loader);
+    resultsEl.parentNode.appendChild(endMark);
     function doSearch() {
         var q = input.value.trim();
         clearTimeout(timer);
         rendered = [];  // 新搜索重置
+        var myToken = ++searchToken;  // 本次搜索的 token
+        // 重置 loader/end 状态 (单例复用, 不重复创建)
+        loader.classList.remove('visible');
+        endMark.classList.remove('visible');
         if (!q) {
             resultsEl.innerHTML = '';
             metaEl.hidden = true;
@@ -117,11 +172,9 @@
         }
         // 立即清空旧结果 + 显示加载中 (点击按钮才搜索, 结果立刻开始渲染)
         resultsEl.innerHTML = '';
-        // 清理旧搜索的 loader/endMark/scroll 监听 (2026-08-11)
-        var oldLoader = resultsEl.parentNode.querySelector('.isf-loader');
-        var oldEnd = resultsEl.parentNode.querySelector('.isf-end');
-        if (oldLoader) oldLoader.remove();
-        if (oldEnd) oldEnd.remove();
+        // 搜索开始即预取全部 fragment (加速后续滚动加载)
+        prefetchFragments();
+        // 移除旧搜索的 scroll 监听 (2026-08-11)
         if (window.__searchOnScroll) {
             window.removeEventListener('scroll', window.__searchOnScroll);
             window.__searchOnScroll = null;
@@ -137,7 +190,7 @@
                 pagefind.search(q, { filters: { rejected: 'true' }, excerptLength: 120 })
             ]);
         }).then(function (res3) {
-            if (input.value.trim() !== q) return;  // 输入已变, 丢弃过期结果
+            if (myToken !== searchToken) return;  // 过期搜索, 丢弃 (2026-08-11)
             var all = (res3[0] && res3[0].results) || [];
             var grantedRes = (res3[1] && res3[1].results) || [];
             var rejectedRes = (res3[2] && res3[2].results) || [];
@@ -204,15 +257,6 @@
                 var shownCount = 0;
                 var loading = false;
                 var allDone = false;
-                // loader / end 提示 (仿主页无限滚动, 用 .visible class 控制, 与主页 extend_footer 一致)
-                var loader = document.createElement('div');
-                loader.className = 'isf-loader';
-                loader.innerHTML = '<span class="isf-spinner"></span><span>加载中…</span>';
-                var endMark = document.createElement('div');
-                endMark.className = 'isf-end';
-                endMark.textContent = '— 已加载全部结果 —';
-                resultsEl.parentNode.appendChild(loader);
-                resultsEl.parentNode.appendChild(endMark);
                 function renderNextBatch() {
                     if (loading || allDone) return;
                     var batch = list.slice(idx, idx + BATCH);
@@ -231,7 +275,7 @@
                     loader.classList.add('visible');
                     idx += BATCH;
                     Promise.all(batch.map(function (r) { return r.data(); })).then(function (docs) {
-                        if (input.value.trim() !== q) return;
+                        if (myToken !== searchToken) return;  // 过期搜索, 丢弃 (2026-08-11)
                         var exactDocs = docs.filter(function (d) { return sortKey(d).exact === 1; });
                         shownCount += exactDocs.length;
                         exactDocs.forEach(insertDoc);
