@@ -86,10 +86,28 @@
                 var articles = doc.querySelectorAll('article');
                 if (articles.length === 0) { finish(); return; }
                 var frag = document.createDocumentFragment();
+                var newArticles = [];
                 for (var i = 0; i < articles.length; i++) {
                     frag.appendChild(articles[i]);
+                    newArticles.push(articles[i]);
                 }
-                main.insertBefore(frag, loader);
+                if (shuffled && newArticles.length > 1) {
+                    // 洗牌后: 新加载的卡片插到已有 article 序列的随机位置 (2026-08-11)
+                    var existing = main.querySelectorAll('article');
+                    // 新卡片逐个插入随机 index
+                    for (var n = 0; n < newArticles.length; n++) {
+                        var insertIdx = Math.floor(Math.random() * (existing.length + 1));
+                        if (insertIdx < existing.length) {
+                            main.insertBefore(newArticles[n], existing[insertIdx]);
+                        } else {
+                            main.insertBefore(newArticles[n], loader);
+                        }
+                        // 更新 existing 引用以保持顺序
+                        existing = main.querySelectorAll('article');
+                    }
+                } else {
+                    main.insertBefore(frag, loader);
+                }
                 curPage++;
                 var elapsed = Date.now() - started;
                 var wait = Math.max(0, MIN_LOADER_MS - elapsed);
@@ -110,6 +128,33 @@
         hideLoader();
         if (loader.parentNode) loader.parentNode.removeChild(loader);
         endMark.classList.add('visible');
+    }
+
+    // 2026-08-11: 随机打乱 — 洗牌 main 里所有 article 的 DOM 顺序。
+    // shuffled=true 后, 后续无限滚动新加载的卡片也插到随机位置。
+    var shuffled = false;
+    function shuffleArticles() {
+        var articles = main.querySelectorAll('article');
+        if (articles.length < 2) return;
+        // Fisher-Yates 洗牌
+        var arr = Array.prototype.slice.call(articles);
+        for (var i = arr.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+        }
+        var frag = document.createDocumentFragment();
+        for (var k = 0; k < arr.length; k++) frag.appendChild(arr[k]);
+        main.insertBefore(frag, loader);
+        shuffled = true;
+    }
+    var shuffleBtn = document.getElementById('shuffle-btn');
+    if (shuffleBtn) {
+        shuffleBtn.addEventListener('click', function () {
+            shuffleArticles();
+            // 视觉反馈: 短暂高亮
+            shuffleBtn.classList.add('shuffling');
+            setTimeout(function () { shuffleBtn.classList.remove('shuffling'); }, 400);
+        });
     }
 
     var ticking = false;

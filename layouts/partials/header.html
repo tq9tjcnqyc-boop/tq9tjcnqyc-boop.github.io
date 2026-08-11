@@ -58,6 +58,18 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                {{- /* 2026-08-11: 随机打乱按钮 — 点击洗牌首页文章顺序, 阅读灵感 */ -}}
+                <button id="shuffle-btn" class="theme-toggle shuffle-btn" title="随机打乱排序" aria-label="Shuffle posts">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M16 3h5v5"></path>
+                        <path d="M4 20L21 3"></path>
+                        <path d="M21 16v5h-5"></path>
+                        <path d="M15 15l6 6"></path>
+                        <path d="M4 4l5 5"></path>
+                    </svg>
+                </button>
                 {{- end }}
                 
                 {{- if (not site.Params.disableLangToggle) }}

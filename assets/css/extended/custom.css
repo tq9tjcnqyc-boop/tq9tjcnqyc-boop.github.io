@@ -350,6 +350,17 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__search-input {
   padding-right: 16px !important;
 }
+/* 2026-08-11: 首页随机打乱按钮 — 与 theme-toggle 同尺寸, 点击旋转动画反馈 */
+#shuffle-btn {
+  margin-left: 4px;
+}
+#shuffle-btn.shuffling svg {
+  animation: shuffle-spin 0.4s ease;
+}
+@keyframes shuffle-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 .pagefind-ui__result {
   background: var(--code-bg) !important;
   border: 1.5px solid var(--border) !important;
