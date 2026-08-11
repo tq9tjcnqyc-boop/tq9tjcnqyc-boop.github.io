@@ -1,0 +1,136 @@
+{{- /* Feed-style infinite scroll for paged list pages (home + section lists
+       like /posts/). Loads the NEXT page only when the user scrolls near the
+       bottom; shows a "加载中…" indicator while fetching. Page URLs are
+       constructed directly (/page/N/) — no pager DOM needed, so the pagination
+       footer is NOT rendered at all. URL is intentionally NOT rewritten —
+       refreshing always returns to the same page. */ -}}
+{{- if or .IsHome (eq .Kind "section") -}}
+<style>
+    .isf-loader {
+        display: none;
+        text-align: center;
+        padding: 18px 0 26px;
+        font-size: 14px;
+        color: var(--secondary);
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+    }
+    .isf-loader.visible { display: flex; }
+    .isf-loader .isf-spinner {
+        width: 16px; height: 16px;
+        border: 2px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: isf-spin 0.8s linear infinite;
+    }
+    @keyframes isf-spin { to { transform: rotate(360deg); } }
+    .isf-end {
+        display: none;
+        text-align: center;
+        padding: 14px 0 22px;
+        font-size: 13px;
+        color: var(--secondary);
+    }
+    .isf-end.visible { display: block; }
+</style>
+<script>
+(function () {
+    'use strict';
+    var main = document.querySelector('main.main') || document.querySelector('.main');
+    if (!main) return;
+
+    // Current page number from URL (/page/N/ or page 1 for the base URL).
+    var m = location.pathname.match(/\/page\/(\d+)\/?$/);
+    var curPage = m ? parseInt(m[1], 10) : 1;
+
+    // Build the next page URL directly. Home: /page/2/ ; sections: /posts/page/2/
+    function nextUrl() {
+        var base = location.pathname.replace(/\/page\/\d+\/?$/, '');
+        if (!base.endsWith('/')) base += '/';
+        return base + 'page/' + (curPage + 1) + '/';
+    }
+
+    var loader = document.createElement('div');
+    loader.className = 'isf-loader';
+    loader.innerHTML = '<span class="isf-spinner"></span><span>加载中…</span>';
+    var endMark = document.createElement('div');
+    endMark.className = 'isf-end';
+    endMark.textContent = '— 已加载全部文章 —';
+    main.appendChild(loader);
+    main.appendChild(endMark);
+
+    var loading = false;
+    var done = false;
+    var MIN_LOADER_MS = 400;
+
+    function showLoader() { loader.classList.add('visible'); }
+    function hideLoader() { loader.classList.remove('visible'); }
+
+    function loadNext() {
+        if (loading || done) return;
+        loading = true;
+        var started = Date.now();
+        showLoader();
+        fetch(nextUrl(), { credentials: 'same-origin' })
+            .then(function (resp) {
+                if (!resp.ok) {
+                    if (resp.status === 404) { finish(); return; }
+                    throw new Error('HTTP ' + resp.status);
+                }
+                return resp.text();
+            })
+            .then(function (html) {
+                if (!html) return;
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var articles = doc.querySelectorAll('article');
+                if (articles.length === 0) { finish(); return; }
+                var frag = document.createDocumentFragment();
+                for (var i = 0; i < articles.length; i++) {
+                    frag.appendChild(articles[i]);
+                }
+                main.insertBefore(frag, loader);
+                curPage++;
+                var elapsed = Date.now() - started;
+                var wait = Math.max(0, MIN_LOADER_MS - elapsed);
+                setTimeout(function () {
+                    hideLoader();
+                    loading = false;
+                }, wait);
+            })
+            .catch(function () {
+                // Transient failure: hide spinner, allow retry on next scroll.
+                hideLoader();
+                loading = false;
+            });
+    }
+
+    function finish() {
+        done = true;
+        hideLoader();
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+        endMark.classList.add('visible');
+    }
+
+    var ticking = false;
+    function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+            ticking = false;
+            var scrollY = window.scrollY || window.pageYOffset || 0;
+            var docH = document.documentElement.scrollHeight || document.body.scrollHeight;
+            var limit = docH - window.innerHeight;
+            // Only load when the user is actually scrolled near the bottom.
+            if (limit > 0 && limit - scrollY < 500) loadNext();
+        });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    // Catch up only if the page was opened already scrolled (e.g. reload
+    // mid-feed, browser restores scroll position).
+    if ((window.scrollY || window.pageYOffset || 0) > 0) onScroll();
+})();
+</script>
+{{- end }}

@@ -5,10 +5,10 @@ title = '专利档案库'
 theme = 'PaperMod'
 enableInlineShortcodes = true
 enableRobotsTXT = true
-paginate = 9
+paginate = 5
 
 [pagination]
-  pagerSize = 9
+  pagerSize = 5
 
 cleanDestinationDir = true
 # 2026-08-11: 启用标签功能 (原来禁用 taxonomy, 现在用标签页替代搜索)
