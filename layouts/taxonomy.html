@@ -11,7 +11,7 @@
 </header>
 {{- end }}
 
-{{- /* 主题默认 taxonomy 模板, 仅排序从 Alphabetical 改为 ByCount (文章数多的在前) */ -}}
+{{- /* 主题默认 taxonomy 模板, 仅排序改为 ByCount (文章数多的在前) */ -}}
 <ul class="terms-tags">
     {{- $type := .Type }}
         {{- range $key, $value := .Data.Terms.ByCount }}
