@@ -51,6 +51,24 @@
         return pagefindPromise;
     }
 
+    // 数字查询自定义摘要: 从正文定位独立数字(如 "1、"), 截取上下文, 高亮该数字本身
+    // (Pagefind 对数字前缀匹配, excerpt 会高亮 101/106 这种, 用户要求高亮独立数字)
+    function buildNumExcerpt(d, q) {
+        var raw = d.raw_content || d.content || '';
+        if (!raw) return '';
+        var re = new RegExp('(^|[^0-9])(' + q + ')([^0-9]|$)');
+        var m = re.exec(raw);
+        if (!m) return '';
+        var start = Math.max(0, m.index - 15);
+        var end = Math.min(raw.length, m.index + m[0].length + 35);
+        var seg = raw.slice(start, end);
+        // 转义 HTML 后重新插入高亮 mark
+        seg = seg.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var re2 = new RegExp('([^0-9])(' + q + ')([^0-9]|$)');
+        seg = seg.replace(re2, '$1<mark>' + q + '</mark>$3');
+        return (start > 0 ? '…' : '') + seg + (end < raw.length ? '…' : '');
+    }
+
     // 渲染一条结果 (pagefind 原始格式)
     function renderResult(r) {
         var el = document.createElement('article');
@@ -68,7 +86,12 @@
         // 摘要
         var eEl = document.createElement('p');
         eEl.className = 'pagefind-ui__result-excerpt';
-        eEl.innerHTML = r.excerpt || '';
+        // 数字查询: 自定义 excerpt (定位独立数字, 高亮它本身, 而不是 106 这种前缀匹配)
+        if (window.__qIsNum) {
+            eEl.innerHTML = buildNumExcerpt(r, window.__q);
+        } else {
+            eEl.innerHTML = r.excerpt || '';
+        }
         el.appendChild(tEl);
         el.appendChild(eEl);
         if (isVisited(a.href)) a.classList.add('visited');
@@ -126,6 +149,8 @@
                 //   「1」只匹配独立 1 (如 "1、一种"), 不匹配 106/101 里的 1
                 //   非数字查询: 标题或摘要完整包含查询词
                 var qIsNum = /^\d+$/.test(q);
+                window.__qIsNum = qIsNum;
+                window.__q = q;
                 var numRe = qIsNum ? new RegExp('(^|[^0-9])' + q + '([^0-9]|$)') : null;
                 function isExactText(text) {
                     if (!text) return false;
