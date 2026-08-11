@@ -389,6 +389,7 @@ html[data-theme="dark"] .pagefind-ui__result-title a.visited {
   color: var(--secondary) !important;
   font-size: 0.9rem !important;
   line-height: 1.6;
+  /* 2026-08-11: 摘要超 2 行末尾显示省略号 (完整规则在下方 523 行附近, 含 word-break) */
 }
 /* 高亮的匹配词: 黄色底(经典高亮, 明显) */
 .pagefind-ui__result-excerpt mark {
@@ -520,6 +521,12 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
     line-height: 1.7;
     color: var(--secondary);
     word-break: break-word;
+    /* 2026-08-11: 摘要超 2 行末尾显示省略号 (与上面规则一致) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 /* ⚠️ 旧的高亮定义已删: background:transparent + font-weight:600
    会覆盖上面的黄色高亮(两者都 !important, 后者胜), 导致高亮变加粗、
