@@ -280,36 +280,34 @@ html:not([data-theme="dark"]) .chroma .ss {
 }
 .pagefind-ui__search-btn {
   flex: 0 0 auto;
-  border: 1px solid var(--border) !important;
+  border: none !important;  /* 2026-08-11: 去边框 */
   border-radius: var(--radius) !important;
   background: var(--code-bg) !important;  /* 2026-08-11: 与搜索框同色 */
   color: var(--content) !important;
   padding: 12px 24px;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 .pagefind-ui__search-btn:hover {
-  border-color: var(--primary) !important;
   color: var(--primary) !important;
 }
-/* 搜索框: 有边框、圆角、与主题协调。
-   聚焦时只变边框颜色, 背景保持浅灰不变(避免亮模式下 --entry 白色与页面背景混淆) */
+/* 搜索框: 无边框、圆角、与主题协调 (2026-08-11: 去边框)。
+   背景浅灰(--code-bg) 与页面背景形成层次 */
 .pagefind-ui__search-input {
-  border: 1px solid var(--border) !important;
+  border: none !important;  /* 2026-08-11: 去边框 */
   border-radius: var(--radius) !important;
   background: var(--code-bg) !important;
   color: var(--content) !important;
   padding: 12px 16px 12px 16px !important;
   box-shadow: none !important;
-  transition: border-color 0.2s ease;
+  transition: background 0.2s ease;
   /* 拉满宽度: 撑满 form 剩余空间 */
   flex: 1 1 auto !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
 .pagefind-ui__search-input:focus {
-  border-color: var(--primary) !important;
   outline: none;
   background: var(--code-bg) !important;
 }
