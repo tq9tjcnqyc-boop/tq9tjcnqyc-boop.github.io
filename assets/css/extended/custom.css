@@ -350,17 +350,6 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__search-input {
   padding-right: 16px !important;
 }
-/* 2026-08-11: 首页随机打乱按钮 — 与 theme-toggle 同尺寸, 点击旋转动画反馈 */
-#shuffle-btn {
-  margin-left: 4px;
-}
-#shuffle-btn.shuffling svg {
-  animation: shuffle-spin 0.4s ease;
-}
-@keyframes shuffle-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
 /* 2026-08-11: 标签云 — 热门标签置顶 + 长尾折叠 */
 .tags-section-title {
   font-size: 1.1rem;
@@ -377,6 +366,43 @@ html:not([data-theme="dark"]) .chroma .ss {
 }
 .tags-more summary:hover {
   color: var(--primary);
+}
+/* 2026-08-11: 标签按词频分档 — 次数越多字号越大、颜色越深 */
+.terms-tags a.tag-xl {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--tertiary);
+  padding: 6px 14px;
+}
+.terms-tags a.tag-lg {
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: var(--content);
+  background: var(--tertiary);
+  padding: 5px 12px;
+}
+.terms-tags a.tag-md {
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: var(--content);
+  background: var(--tertiary);
+  padding: 4px 10px;
+}
+.terms-tags a.tag-sm {
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: var(--secondary);
+  background: var(--tertiary);
+  padding: 3px 9px;
+}
+.terms-tags a.tag-xs {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--secondary);
+  opacity: 0.75;
+  background: var(--tertiary);
+  padding: 2px 8px;
 }
 .pagefind-ui__result {
   background: var(--code-bg) !important;

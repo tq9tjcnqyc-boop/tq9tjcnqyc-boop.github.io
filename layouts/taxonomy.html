@@ -11,8 +11,9 @@
 </header>
 {{- end }}
 
-{{- /* 2026-08-11: 标签云 — 按文章数降序。
-       热门标签(≥3篇) 大字号置顶醒目, 长尾标签(1-2篇) 折叠 "查看全部" 展开 */ -}}
+{{- /* 2026-08-11: 标签云 — 按词频分档显示。
+       出现次数越多 → 字号越大、颜色越深; 次数少 → 低调。
+       分档: >=40 特大(tag-xl), >=20 大(tag-lg), >=10 中(tag-md), >=3 小(tag-sm), <3 最小(tag-xs 折叠区) */ -}}
 {{- $type := .Type }}
 {{- $all := .Data.Terms.ByCount }}
 {{- $hot := where $all "Count" "ge" 3 }}
@@ -23,9 +24,11 @@
     {{- range $key, $value := $hot }}
         {{- $name := .Name }}
         {{- $count := .Count }}
+        {{- $size := "tag-sm" }}
+        {{- if ge $count 40 }}{{ $size = "tag-xl" }}{{- else if ge $count 20 }}{{ $size = "tag-lg" }}{{- else if ge $count 10 }}{{ $size = "tag-md" }}{{- end }}
         {{- with site.GetPage (printf "/%s/%s" $type $name) }}
         <li>
-            <a href="{{ .Permalink }}">{{ .LinkTitle }} <sup><strong><sup>{{ $count }}</sup></strong></sup> </a>
+            <a class="{{ $size }}" href="{{ .Permalink }}">{{ .LinkTitle }} <sup><strong><sup>{{ $count }}</sup></strong></sup> </a>
         </li>
         {{- end }}
     {{- end }}
@@ -40,7 +43,7 @@
             {{- $count := .Count }}
             {{- with site.GetPage (printf "/%s/%s" $type $name) }}
             <li>
-                <a href="{{ .Permalink }}">{{ .LinkTitle }} <sup><strong><sup>{{ $count }}</sup></strong></sup> </a>
+                <a class="tag-xs" href="{{ .Permalink }}">{{ .LinkTitle }} <sup><strong><sup>{{ $count }}</sup></strong></sup> </a>
             </li>
             {{- end }}
         {{- end }}
