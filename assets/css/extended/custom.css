@@ -208,6 +208,11 @@ html:not([data-theme="dark"]) .chroma .ss {
   margin-right: .15em;
   vertical-align: -0.05em;
 }
+/* 标题+标记包一层, 避免 entry-hint-parent 的 space-between 把标题推到右端 */
+.entry-title-wrap {
+  display: inline;
+  min-width: 0;
+}
 .post-count {
   margin-left: .5rem;
   font-size: .8em;

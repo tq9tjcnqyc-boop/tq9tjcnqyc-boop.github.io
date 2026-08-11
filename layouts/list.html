@@ -76,8 +76,10 @@
   {{- partial "cover.html" (dict "cxt" . "IsSingle" false "isHidden" $isHidden) }}
   <header class="entry-header">
     <h2 class="entry-hint-parent">
-      {{- if .Params.granted }}<span class="state-mark" title="已授权">✅</span> {{- else if .Params.rejected }}<span class="state-mark" title="已驳回">❌</span> {{- end }}
-      {{- .Title }}
+      <span class="entry-title-wrap">
+        {{- if .Params.granted }}<span class="state-mark" title="已授权">✅</span> {{- else if .Params.rejected }}<span class="state-mark" title="已驳回">❌</span> {{- end }}
+        {{- .Title }}
+      </span>
       {{- if .Draft }}
       <span class="entry-hint" title="Draft">
         <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" fill="currentColor">

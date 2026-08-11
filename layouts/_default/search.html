@@ -122,11 +122,21 @@
                     return 0;  // 组内保持 Pagefind 顺序
                 });
                 var rendered = [];  // 已渲染 doc 数组 (保持有序)
+                // 全字匹配判断 (2026-08-11): 纯数字查询必须独立匹配
+                //   「1」只匹配独立 1 (如 "1、一种"), 不匹配 106/101 里的 1
+                //   非数字查询: 标题或摘要完整包含查询词
+                var qIsNum = /^\d+$/.test(q);
+                var numRe = qIsNum ? new RegExp('(^|[^0-9])' + q + '([^0-9]|$)') : null;
+                function isExactText(text) {
+                    if (!text) return false;
+                    if (numRe) return numRe.test(text);
+                    return text.indexOf(q) > -1;
+                }
                 function sortKey(d) {
                     var t = (d.meta && d.meta.title) || '';
                     var e = d.excerpt || '';
-                    // 全字匹配: 标题或摘要完整包含查询词 (2026-08-11, 用户要求优先全字匹配)
-                    var exact = (t.indexOf(q) > -1 || e.indexOf(q) > -1) ? 1 : 0;
+                    var c = d.raw_content || d.content || '';
+                    var exact = (isExactText(t) || isExactText(e) || isExactText(c)) ? 1 : 0;
                     var st = grantedIds[d.id] ? 2 : (rejectedIds[d.id] ? 1 : 0);
                     return { exact: exact, st: st };
                 }
@@ -147,14 +157,26 @@
                     }
                 }
                 // 渐进渲染: 首批 BATCH 条并行取 data() 快出, 其余分批后台补全
+                // (2026-08-11 全字匹配: 非全字匹配的结果跳过不渲染)
                 var idx = 0;
+                var shownCount = 0;
                 function nextBatch() {
                     var batch = list.slice(idx, idx + BATCH);
                     idx += BATCH;
-                    if (!batch.length) return;
+                    if (!batch.length) {
+                        // 全部批次完成, 更新实际显示数 (全字匹配过滤后可能少于原始数)
+                        if (shownCount) {
+                            metaEl.textContent = '搜索「' + q + '」共 ' + shownCount + ' 条全字匹配结果';
+                        } else {
+                            metaEl.textContent = '没有找到「' + q + '」全字匹配的内容';
+                        }
+                        return;
+                    }
                     Promise.all(batch.map(function (r) { return r.data(); })).then(function (docs) {
                         if (input.value.trim() !== q) return;
-                        docs.forEach(insertDoc);
+                        var exactDocs = docs.filter(function (d) { return sortKey(d).exact === 1; });
+                        shownCount += exactDocs.length;
+                        exactDocs.forEach(insertDoc);
                         nextBatch();
                     });
                 }
