@@ -18,6 +18,10 @@ buildFuture = true
 [taxonomies]
   tag = 'tags'
 
+# 2026-08-11: 主题自带搜索需要 index.json (Fuse.js 数据源)
+[outputs]
+  home = ['HTML', 'RSS', 'JSON']
+
 [params]
   env = 'production'
   mainSections = ['posts']
@@ -32,14 +36,19 @@ buildFuture = true
   hideFooter = false
 
 [[menu.main]]
+  name = '搜索'
+  url = '/search/'
+  weight = 10
+
+[[menu.main]]
   name = '标签'
   url = '/tags/'
-  weight = 10
+  weight = 20
 
 [[menu.main]]
   name = '关于'
   url = '/about/'
-  weight = 20
+  weight = 30
 
 [[params.socialIcons]]
   name = 'github'
