@@ -36,17 +36,8 @@ const buildFuseOptions = () => {
     };
 };
 
-/* 2026-08-11: 防抖 150ms -> 400ms + IME 组合保护。
-   ⚠️ 仅防抖挡不住中文输入: 拼音打字时每敲一键都触发 input 事件,
-   停顿 300ms(选词/看候选)就会拿拼音去搜, 结果乱跳+卡顿。
-   正解 = compositionstart/end 期间不搜, 选词完成才触发一次搜索。 */
-const debounce = (fn, delay) => {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = window.setTimeout(() => fn(...args), delay);
-    };
-};
+/* 2026-08-11: 防抖/IME 逻辑已删除 — 按钮确认制下输入过程零搜索,
+   不需要任何中间态处理。 */
 
 const reset = () => {
     currentElement = null;
@@ -127,19 +118,16 @@ const performSearch = () => {
     renderResults(results);
 };
 
-/* 2026-08-11: 防抖 400ms + IME 组合保护 (在 performSearch 定义之后,
-   否则 const TDZ ReferenceError 崩整个脚本)。
-   ⚠️ 仅防抖挡不住中文输入: 拼音打字时每敲一键都触发 input 事件,
-   停顿 300ms(选词/看候选)就会拿拼音去搜, 结果乱跳+卡顿。
-   正解 = compositionstart/end 期间不搜, 选词完成才触发一次搜索。 */
-const scheduleSearch = debounce(performSearch, 400);
-let isComposing = false;
+/* 2026-08-11: 输入即搜被用户否(打字/IME 期间卡顿乱跳) — 改为按钮确认制:
+   「搜索」按钮 click 或 input 内回车才触发 performSearch, 输入过程零搜索。
+   ⚠️ 不做防抖/不做 IME 组合监听 — 按钮制下没有中间态, 不需要。 */
+const searchBtn = document.getElementById('searchBtn');
 
-const handleInput = () => {
-    if (isComposing) {
-        return; // IME 组合中: 拼音/候选未定型, 不搜
+const doSearch = () => {
+    if (sInput.disabled || !fuse) {
+        return;
     }
-    scheduleSearch();
+    performSearch();
 };
 
 const initSearch = async () => {
@@ -148,6 +136,9 @@ const initSearch = async () => {
     }
 
     sInput.disabled = false;
+    if (searchBtn) {
+        searchBtn.disabled = false;
+    }
     sInput.focus();
 
     try {
@@ -167,14 +158,14 @@ const initSearch = async () => {
 
 window.addEventListener('load', initSearch);
 
-sInput?.addEventListener('input', handleInput);
-sInput?.addEventListener('compositionstart', () => {
-    isComposing = true;
+sInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        doSearch();
+    }
 });
-sInput?.addEventListener('compositionend', () => {
-    isComposing = false;
-    scheduleSearch(); // 选词完成立即(防抖后)搜一次
-});
+
+searchBtn?.addEventListener('click', doSearch);
 
 sInput?.addEventListener('search', () => {
     if (!sInput.value) {

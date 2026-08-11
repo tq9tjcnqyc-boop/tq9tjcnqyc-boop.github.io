@@ -286,4 +286,38 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb {
 html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   background: rgb(120, 122, 125);
 }
+/* Search page: input + button side by side (2026-08-11 button-confirm mode) */
+.search-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.search-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: normal;
+}
+.search-row #searchBtn {
+  flex: 0 0 auto;
+  padding: 4px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--theme);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity .2s ease;
+}
+.search-row #searchBtn:hover {
+  opacity: .85;
+}
+.search-row #searchBtn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.search-row #searchBtn:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
 
