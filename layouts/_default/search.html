@@ -121,7 +121,10 @@
         var hlRe = qIsNum
             ? new RegExp('([^0-9])(' + q + ')([^0-9]|$)')
             : new RegExp('(' + escapeRegExp(q) + ')');
-        seg = seg.replace(hlRe, '$1<mark>' + q + '</mark>$3');
+        // 数字: $1=前导分隔符 $2=数字 $3=后导分隔符; 非数字: $1=查询词本身
+        seg = qIsNum
+            ? seg.replace(hlRe, '$1<mark>' + q + '</mark>$3')
+            : seg.replace(hlRe, '<mark>' + q + '</mark>');
         return (start > 0 ? '…' : '') + seg + (end < raw.length ? '…' : '');
     }
     function escapeRegExp(s) {
