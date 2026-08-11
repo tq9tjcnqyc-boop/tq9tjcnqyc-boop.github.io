@@ -11,18 +11,41 @@
 </header>
 {{- end }}
 
-{{- /* 2026-08-11: 标签云 — 按文章数降序 (中文按字母排序无意义) */ -}}
+{{- /* 2026-08-11: 标签云 — 按文章数降序。
+       热门标签(≥3篇) 大字号置顶醒目, 长尾标签(1-2篇) 折叠 "查看全部" 展开 */ -}}
+{{- $type := .Type }}
+{{- $all := .Data.Terms.ByCount }}
+{{- $hot := where $all "Count" "ge" 3 }}
+{{- $tail := where $all "Count" "lt" 3 }}
+
+<h2 class="tags-section-title">热门标签</h2>
 <ul class="terms-tags">
-    {{- $type := .Type }}
-        {{- range $key, $value := .Data.Terms.ByCount }}
+    {{- range $key, $value := $hot }}
+        {{- $name := .Name }}
+        {{- $count := .Count }}
+        {{- with site.GetPage (printf "/%s/%s" $type $name) }}
+        <li>
+            <a href="{{ .Permalink }}">{{ .LinkTitle }} <sup><strong><sup>{{ $count }}</sup></strong></sup> </a>
+        </li>
+        {{- end }}
+    {{- end }}
+</ul>
+
+{{- if gt (len $tail) 0 }}
+<details class="tags-more">
+    <summary>更多标签（{{ len $tail }} 个）</summary>
+    <ul class="terms-tags">
+        {{- range $key, $value := $tail }}
             {{- $name := .Name }}
             {{- $count := .Count }}
             {{- with site.GetPage (printf "/%s/%s" $type $name) }}
             <li>
                 <a href="{{ .Permalink }}">{{ .LinkTitle }} <sup><strong><sup>{{ $count }}</sup></strong></sup> </a>
             </li>
+            {{- end }}
         {{- end }}
-    {{- end }}
-</ul>
+    </ul>
+</details>
+{{- end }}
 
 {{- end }}{{/* end main */ -}}

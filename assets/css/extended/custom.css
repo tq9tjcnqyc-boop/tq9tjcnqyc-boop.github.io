@@ -361,6 +361,23 @@ html:not([data-theme="dark"]) .chroma .ss {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+/* 2026-08-11: 标签云 — 热门标签置顶 + 长尾折叠 */
+.tags-section-title {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+}
+.tags-more {
+  margin-top: 20px;
+}
+.tags-more summary {
+  cursor: pointer;
+  color: var(--secondary);
+  font-size: 0.9rem;
+  padding: 4px 0;
+}
+.tags-more summary:hover {
+  color: var(--primary);
+}
 .pagefind-ui__result {
   background: var(--code-bg) !important;
   border: 1.5px solid var(--border) !important;
