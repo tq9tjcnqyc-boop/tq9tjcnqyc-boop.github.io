@@ -13,6 +13,7 @@
         <div class="pagefind-ui__search-input-wrap">
             <input id="search-input" class="pagefind-ui__search-input" type="search"
                    placeholder="输入关键词搜索…" autocomplete="off" autocorrect="off" spellcheck="false">
+            <button id="search-btn" class="pagefind-ui__search-btn" type="button">搜索</button>
         </div>
         <div id="search-meta" class="pagefind-ui__message" hidden></div>
         <div id="search-results" class="pagefind-ui__results"></div>
@@ -99,8 +100,9 @@
     }
 
     var timer = null;
-    var BATCH = 25;  // 渐进渲染批大小: 首批快出, 后续后台补全 (不砍结果数)
-    function onInput() {
+    var BATCH = 12;  // 渐进渲染批大小: 首批快出, 后续后台补全 (不砍结果数)
+    var searchBtn = document.getElementById('search-btn');
+    function doSearch() {
         var q = input.value.trim();
         clearTimeout(timer);
         if (!q) {
@@ -108,26 +110,28 @@
             metaEl.hidden = true;
             return;
         }
-        timer = setTimeout(function () {
-            getPagefind().then(function (pagefind) {
-                // 三次轻量并行搜索 (索引内操作, 无需 data()):
-                // 1) 全部  2) 授权  3) 驳回 — 零成本拿到状态分组
-                return Promise.all([
-                    pagefind.search(q),
-                    pagefind.search(q, { filters: { granted: 'true' } }),
-                    pagefind.search(q, { filters: { rejected: 'true' } })
-                ]);
-            }).then(function (res3) {
-                if (input.value.trim() !== q) return;  // 输入已变, 丢弃过期结果
-                var all = (res3[0] && res3[0].results) || [];
-                var grantedRes = (res3[1] && res3[1].results) || [];
-                var rejectedRes = (res3[2] && res3[2].results) || [];
-                resultsEl.innerHTML = '';
-                if (!all.length) {
-                    metaEl.textContent = '没有找到「' + q + '」相关的内容';
-                    metaEl.hidden = false;
-                    return;
-                }
+        // 立即清空旧结果 + 显示加载中 (点击按钮才搜索, 结果立刻开始渲染)
+        resultsEl.innerHTML = '';
+        metaEl.textContent = '搜索「' + q + '」中…';
+        metaEl.hidden = false;
+        getPagefind().then(function (pagefind) {
+            // 三次轻量并行搜索 (索引内操作, 无需 data()):
+            // 1) 全部  2) 授权  3) 驳回 — 零成本拿到状态分组
+            return Promise.all([
+                pagefind.search(q),
+                pagefind.search(q, { filters: { granted: 'true' } }),
+                pagefind.search(q, { filters: { rejected: 'true' } })
+            ]);
+        }).then(function (res3) {
+            if (input.value.trim() !== q) return;  // 输入已变, 丢弃过期结果
+            var all = (res3[0] && res3[0].results) || [];
+            var grantedRes = (res3[1] && res3[1].results) || [];
+            var rejectedRes = (res3[2] && res3[2].results) || [];
+            if (!all.length) {
+                metaEl.textContent = '没有找到「' + q + '」相关的内容';
+                metaEl.hidden = false;
+                return;
+            }
                 metaEl.textContent = '搜索「' + q + '」共 ' + all.length + ' 条结果';
                 metaEl.hidden = false;
                 // 状态集合 (id → 2=授权 1=驳回 0=普通)
@@ -210,11 +214,11 @@
                 metaEl.textContent = '搜索加载失败，请重试';
                 metaEl.hidden = false;
             });
-        }, 200);  // 200ms 防抖
     }
-    input.addEventListener('input', onInput);
+    // 点击「搜索」按钮 或 回车 → 触发搜索 (2026-08-11: 不再输入即搜)
+    searchBtn.addEventListener('click', doSearch);
     input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { clearTimeout(timer); onInput(); }
+        if (e.key === 'Enter') { doSearch(); }
     });
 })();
 </script>
