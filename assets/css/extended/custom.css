@@ -200,7 +200,40 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
-/* 文章计数器: logo 右侧 */
+/* 状态卡片背景色 (2026-08-11): 授权=绿, 驳回=红, 柔和适配明暗主题
+   覆盖首页 post-entry 与搜索 pagefind-ui__result 两种卡片 */
+.post-entry.state-granted,
+.pagefind-ui__result.state-granted {
+  background: rgba(46, 160, 67, 0.12) !important;  /* 暗模式柔和绿 */
+  border-color: rgba(46, 160, 67, 0.45) !important;
+}
+.post-entry.state-rejected,
+.pagefind-ui__result.state-rejected {
+  background: rgba(248, 81, 73, 0.12) !important;  /* 暗模式柔和红 */
+  border-color: rgba(248, 81, 73, 0.45) !important;
+}
+html[data-theme="light"] .post-entry.state-granted,
+html[data-theme="light"] .pagefind-ui__result.state-granted {
+  background: rgba(46, 160, 67, 0.08) !important;  /* 浅模式更淡 */
+  border-color: rgba(46, 160, 67, 0.35) !important;
+}
+html[data-theme="light"] .post-entry.state-rejected,
+html[data-theme="light"] .pagefind-ui__result.state-rejected {
+  background: rgba(248, 81, 73, 0.08) !important;
+  border-color: rgba(248, 81, 73, 0.35) !important;
+}
+@media (prefers-color-scheme: light) {
+  html[data-theme="auto"] .post-entry.state-granted,
+  html[data-theme="auto"] .pagefind-ui__result.state-granted {
+    background: rgba(46, 160, 67, 0.08) !important;
+    border-color: rgba(46, 160, 67, 0.35) !important;
+  }
+  html[data-theme="auto"] .post-entry.state-rejected,
+  html[data-theme="auto"] .pagefind-ui__result.state-rejected {
+    background: rgba(248, 81, 73, 0.08) !important;
+    border-color: rgba(248, 81, 73, 0.35) !important;
+  }
+}
 .post-count {
   margin-left: .5rem;
   font-size: .8em;
@@ -275,9 +308,7 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__search-input {
   padding-right: 16px !important;
 }
-/* 搜索结果卡片: 复用首页 post-entry 样式 (2026-08-11)
-   renderResult 输出结构 = 首页卡片 (header/content/footer) */
-.search-result-entry {
+.pagefind-ui__result {
   background: var(--code-bg) !important;
   border: 1.5px solid var(--border) !important;
   border-radius: var(--radius) !important;
@@ -285,38 +316,38 @@ html:not([data-theme="dark"]) .chroma .ss {
   margin: 0 0 12px !important;
   list-style: none;
 }
-.search-result-entry .entry-header {
+.pagefind-ui__result-title {
   font-size: 1.05rem !important;
   font-weight: 600 !important;
   color: var(--content) !important;
   margin-bottom: 6px;
 }
 /* 链接配色: 跟随主题(--primary 亮黑/暗白, --secondary 灰), 不用刺眼的蓝紫 */
-.search-result-entry .entry-hint-parent a {
+.pagefind-ui__result-title a {
   color: var(--primary) !important;
   text-decoration: underline !important;
   text-underline-offset: 2px;
 }
-.search-result-entry .entry-hint-parent a:hover {
+.pagefind-ui__result-title a:hover {
   color: var(--secondary) !important;
 }
 /* 点过的链接: 变淡(--tertiary 灰), 未点(--primary 黑/白) — 同主题色系内区分。
    只认 .visited 类(JS 内存记录, 刷新即重置)——不用 :visited 伪类,
    因为它基于浏览器历史, 普通模式刷新后依然生效, 违背"刷新重置"需求。 */
-.search-result-entry .entry-hint-parent a.visited {
+.pagefind-ui__result-title a.visited {
   color: var(--tertiary) !important;
 }
 /* 暗模式下 tertiary 太暗看不清, 用更亮的中灰 */
-html[data-theme="dark"] .search-result-entry .entry-hint-parent a.visited {
+html[data-theme="dark"] .pagefind-ui__result-title a.visited {
   color: rgb(110, 112, 115) !important;
 }
-.search-result-entry .entry-content {
+.pagefind-ui__result-excerpt {
   color: var(--secondary) !important;
   font-size: 0.9rem !important;
   line-height: 1.6;
 }
 /* 高亮的匹配词: 黄色底(经典高亮, 明显) */
-.search-result-entry mark {
+.pagefind-ui__result-excerpt mark {
   background: #fef08a !important;
   color: #1f2937 !important;
   font-weight: 400 !important;
@@ -327,7 +358,7 @@ html[data-theme="dark"] .search-result-entry .entry-hint-parent a.visited {
      视觉上字距变宽。贴字即可, 字距与不高亮时完全一致。 */
   padding: 0 !important;
 }
-html[data-theme="dark"] .search-result-entry mark {
+html[data-theme="dark"] .pagefind-ui__result-excerpt mark {
   background: #854d0e !important;
   color: #fef9c3 !important;
 }

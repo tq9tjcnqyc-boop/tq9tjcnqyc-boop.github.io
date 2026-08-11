@@ -51,37 +51,27 @@
         return pagefindPromise;
     }
 
-    // 渲染一条结果 (样式跟随首页 post-entry 卡片, 保留搜索高亮)
+    // 渲染一条结果 (pagefind 原始格式)
     function renderResult(r) {
         var el = document.createElement('article');
-        el.className = 'post-entry search-result-entry';
-        // 标题 (首页卡片是 h2.entry-hint-parent > a)
+        // 状态背景色: granted=绿, rejected=红 (filters 来自 single.html 的 data-pagefind-filter)
+        var granted = r.filters && r.filters.granted && r.filters.granted.length > 0;
+        var rejected = r.filters && r.filters.rejected && r.filters.rejected.length > 0;
+        el.className = 'pagefind-ui__result' + (granted ? ' state-granted' : (rejected ? ' state-rejected' : ''));
+        // 标题在 meta.title (Pagefind data() 无顶层 title 字段)
         var title = ((r.meta && r.meta.title) || r.title || '无标题').replace(/#+\s*$/, '').trim();
-        var hEl = document.createElement('header');
-        hEl.className = 'entry-header';
-        var h2 = document.createElement('h2');
-        h2.className = 'entry-hint-parent';
+        var tEl = document.createElement('h3');
+        tEl.className = 'pagefind-ui__result-title search-result-title';
         var a = document.createElement('a');
         a.href = r.url;
         a.innerHTML = title;
-        h2.appendChild(a);
-        hEl.appendChild(h2);
+        tEl.appendChild(a);
         // 摘要
-        var cEl = document.createElement('div');
-        cEl.className = 'entry-content';
-        var p = document.createElement('p');
-        p.innerHTML = r.excerpt || '';
-        cEl.appendChild(p);
-        // footer: 日期 + 阅读时间 (Pagefind meta 里有日期)
-        var fEl = document.createElement('footer');
-        fEl.className = 'entry-footer';
-        var s = document.createElement('span');
-        var dateStr = (r.meta && r.meta.date) || '';
-        s.textContent = dateStr || '';
-        fEl.appendChild(s);
-        el.appendChild(hEl);
-        el.appendChild(cEl);
-        el.appendChild(fEl);
+        var eEl = document.createElement('p');
+        eEl.className = 'pagefind-ui__result-excerpt';
+        eEl.innerHTML = r.excerpt || '';
+        el.appendChild(tEl);
+        el.appendChild(eEl);
         if (isVisited(a.href)) a.classList.add('visited');
         return el;
     }
