@@ -4,7 +4,7 @@
        constructed directly (/page/N/) — no pager DOM needed, so the pagination
        footer is NOT rendered at all. URL is intentionally NOT rewritten —
        refreshing always returns to the same page. */ -}}
-{{- if or .IsHome (eq .Kind "section") -}}
+{{- if or .IsHome (eq .Kind "section") (eq .Kind "term") -}}
 <style>
     .isf-loader {
         display: none;
