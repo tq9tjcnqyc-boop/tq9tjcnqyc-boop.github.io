@@ -200,6 +200,13 @@
             applyNavContext();
         }
 
+        // 同页 hash 变化 (TOC 锚点跳转/前进后退): 弃用旧的离开位置,
+        // 返回走 TOC/锚点逻辑而非回到陈旧的 exit-pos (2026-08-12 实测补)。
+        window.addEventListener('hashchange', function () {
+            try { sessionStorage.removeItem(EXIT_PREFIX + location.pathname); } catch (e) {}
+            tocNav = true;
+        });
+
         // 返回/前进恢复: 有 hash = 锚点(TOC); 无 hash = 恢复离开位置(或 TOC 目录)
         function restoreBack() {
             if (location.hash) {
