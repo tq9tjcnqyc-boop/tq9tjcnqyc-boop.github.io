@@ -82,7 +82,7 @@
 {{- if and $.IsHome (ne $st $prevStatus) }}
 {{- if eq $st "granted" }}<h2 class="list-section-title">已授权专利</h2>
 {{- else if eq $st "rejected" }}<h2 class="list-section-title">已驳回专利</h2>
-{{- else if eq $st "withdrawn" }}<h2 class="list-section-title">主动撤回专利</h2>
+{{- else if eq $st "withdrawn" }}<h2 class="list-section-title">已撤回专利</h2>
 {{- end }}
 {{- end }}
 {{- $prevStatus = $st }}
