@@ -45,6 +45,13 @@
 {{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true"  }}
 {{- end }}
 
+{{- /* 状态优先排序: 授权(granted) → 驳回(rejected) → 普通, 各组内保持日期倒序 (2026-08-11) */}}
+{{- $granted := where $pages ".Params.granted" true }}
+{{- $rejected := where $pages ".Params.rejected" true }}
+{{- $others := where $pages ".Params.granted" "ne" true }}
+{{- $others = where $others ".Params.rejected" "ne" true }}
+{{- $pages = $granted | append $rejected | append $others }}
+
 {{- $paginator := .Paginate $pages }}
 
 {{- if and .IsHome site.Params.homeInfoParams (eq $paginator.PageNumber 1) }}
