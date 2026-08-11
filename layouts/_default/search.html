@@ -77,6 +77,7 @@
     }
 
     var timer = null;
+    var BATCH = 25;  // 渐进渲染批大小: 首批快出, 后续后台补全 (不砍结果数)
     function onInput() {
         var q = input.value.trim();
         clearTimeout(timer);
@@ -87,38 +88,76 @@
         }
         timer = setTimeout(function () {
             getPagefind().then(function (pagefind) {
-                return pagefind.search(q);
-            }).then(function (searchResult) {
+                // 三次轻量并行搜索 (索引内操作, 无需 data()):
+                // 1) 全部  2) 授权  3) 驳回 — 零成本拿到状态分组
+                return Promise.all([
+                    pagefind.search(q),
+                    pagefind.search(q, { filters: { granted: 'true' } }),
+                    pagefind.search(q, { filters: { rejected: 'true' } })
+                ]);
+            }).then(function (res3) {
                 if (input.value.trim() !== q) return;  // 输入已变, 丢弃过期结果
-                var list = (searchResult && searchResult.results) || [];
+                var all = (res3[0] && res3[0].results) || [];
+                var grantedRes = (res3[1] && res3[1].results) || [];
+                var rejectedRes = (res3[2] && res3[2].results) || [];
                 resultsEl.innerHTML = '';
-                if (!list.length) {
+                if (!all.length) {
                     metaEl.textContent = '没有找到「' + q + '」相关的内容';
                     metaEl.hidden = false;
                     return;
                 }
-                metaEl.textContent = '搜索「' + q + '」共 ' + list.length + ' 条结果';
+                metaEl.textContent = '搜索「' + q + '」共 ' + all.length + ' 条结果';
                 metaEl.hidden = false;
-                // 并行取全部 data() 后统一排序渲染 (2026-08-11):
-                // 1) 标题含完整查询词优先 (修「搜1出106」: 精确词匹配排前面)
-                // 2) 状态优先: 授权 > 驳回 > 普通 (与首页置顶逻辑一致)
-                Promise.all(list.map(function (r) { return r.data(); })).then(function (docs) {
-                    if (input.value.trim() !== q) return;
-                    docs.sort(function (a, b) {
-                        var ta = (a.meta && a.meta.title) || '';
-                        var tb = (b.meta && b.meta.title) || '';
-                        var ea = ta.indexOf(q) > -1 ? 1 : 0;
-                        var eb = tb.indexOf(q) > -1 ? 1 : 0;
-                        if (ea !== eb) return eb - ea;
-                        var ga = (a.filters && a.filters.granted && a.filters.granted.length > 0) ? 2 : ((a.filters && a.filters.rejected && a.filters.rejected.length > 0) ? 1 : 0);
-                        var gb = (b.filters && b.filters.granted && b.filters.granted.length > 0) ? 2 : ((b.filters && b.filters.rejected && b.filters.rejected.length > 0) ? 1 : 0);
-                        if (ga !== gb) return gb - ga;
-                        return 0;  // 保持 Pagefind 相关性顺序
-                    });
-                    docs.forEach(function (d) {
-                        resultsEl.appendChild(renderResult(d));
-                    });
+                // 状态集合 (id → 2=授权 1=驳回 0=普通)
+                var grantedIds = {};
+                var rejectedIds = {};
+                grantedRes.forEach(function (r) { grantedIds[r.id] = 1; });
+                rejectedRes.forEach(function (r) { rejectedIds[r.id] = 1; });
+                // 排序: 标题含完整查询词优先 → 授权 > 驳回 > 普通 (组内保持 Pagefind 相关性)
+                // 状态零成本 (三次搜索), 标题匹配在 data() 到达时渐进判断
+                var list = all.slice();
+                list.sort(function (a, b) {
+                    var sa = grantedIds[a.id] ? 2 : (rejectedIds[a.id] ? 1 : 0);
+                    var sb = grantedIds[b.id] ? 2 : (rejectedIds[b.id] ? 1 : 0);
+                    if (sa !== sb) return sb - sa;
+                    return 0;  // 组内保持 Pagefind 顺序
                 });
+                var rendered = [];  // 已渲染 doc 数组 (保持有序)
+                function sortKey(d) {
+                    var t = (d.meta && d.meta.title) || '';
+                    var exact = t.indexOf(q) > -1 ? 1 : 0;  // 标题含完整查询词
+                    var st = grantedIds[d.id] ? 2 : (rejectedIds[d.id] ? 1 : 0);
+                    return { exact: exact, st: st };
+                }
+                function keyCmp(a, b) {
+                    if (a.exact !== b.exact) return b.exact - a.exact;
+                    return b.st - a.st;
+                }
+                function insertDoc(doc) {
+                    var el = renderResult(doc);
+                    var k = sortKey(doc);
+                    var i = 0;
+                    while (i < rendered.length && keyCmp(k, sortKey(rendered[i])) <= 0) i++;
+                    rendered.splice(i, 0, doc);
+                    if (i < resultsEl.children.length) {
+                        resultsEl.insertBefore(el, resultsEl.children[i]);
+                    } else {
+                        resultsEl.appendChild(el);
+                    }
+                }
+                // 渐进渲染: 首批 BATCH 条并行取 data() 快出, 其余分批后台补全
+                var idx = 0;
+                function nextBatch() {
+                    var batch = list.slice(idx, idx + BATCH);
+                    idx += BATCH;
+                    if (!batch.length) return;
+                    Promise.all(batch.map(function (r) { return r.data(); })).then(function (docs) {
+                        if (input.value.trim() !== q) return;
+                        docs.forEach(insertDoc);
+                        nextBatch();
+                    });
+                }
+                nextBatch();
             }).catch(function () {
                 metaEl.textContent = '搜索加载失败，请重试';
                 metaEl.hidden = false;

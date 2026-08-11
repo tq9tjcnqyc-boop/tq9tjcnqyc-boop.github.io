@@ -5,8 +5,8 @@
     {{ partial "breadcrumbs.html" . }}
     <h1 class="post-title entry-hint-parent">
       {{ .Title }}
-      {{- if .Param "granted" }}<span data-pagefind-filter="granted:true" hidden></span>{{- end }}
-      {{- if .Param "rejected" }}<span data-pagefind-filter="rejected:true" hidden></span>{{- end }}
+      {{- if .Param "granted" }}<span data-pagefind-filter="granted" data-pagefind-filter-value="true" hidden></span>{{- end }}
+      {{- if .Param "rejected" }}<span data-pagefind-filter="rejected" data-pagefind-filter-value="true" hidden></span>{{- end }}
       {{- if .Draft }}
       <span class="entry-hint" title="Draft">
         <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
