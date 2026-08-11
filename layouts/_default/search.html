@@ -47,7 +47,10 @@
 
     function getPagefind() {
         if (!pagefindPromise) {
-            pagefindPromise = import('/pagefind/pagefind.js');
+            pagefindPromise = import('/pagefind/pagefind.js').then(function (pf) {
+                // 2026-08-11: 摘要加长到 120 词, 配合 CSS line-clamp 超2行省略号
+                return pf.options({ excerptLength: 120 }).then(function () { return pf; });
+            });
         }
         return pagefindPromise;
     }
