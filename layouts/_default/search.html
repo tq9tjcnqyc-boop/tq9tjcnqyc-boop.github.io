@@ -131,12 +131,20 @@
         // 摘要
         var eEl = document.createElement('p');
         eEl.className = 'pagefind-ui__result-excerpt';
-        // 数字查询: 自定义 excerpt (定位独立数字, 高亮它本身, 而不是 106 这种前缀匹配)
+        // 摘要 (2026-08-11 统一: 优先用 Pagefind 原生摘要, 数字查询的
+        // 原生摘要若不含独立数字(如只高亮 106/101), 才 fallback 自定义定位)
+        var excerptHtml = r.excerpt || '';
         if (window.__qIsNum) {
-            eEl.innerHTML = buildNumExcerpt(r, window.__q);
-        } else {
-            eEl.innerHTML = r.excerpt || '';
+            // Pagefind 对数字前缀匹配, 原生 excerpt 可能只高亮 106/101 这种;
+            // 检查摘要里是否有独立数字(前后非数字), 没有才用自定义定位
+            var hasStandalone = new RegExp('(^|[^0-9])' + window.__q + '([^0-9]|$)').test(
+                excerptHtml.replace(/<[^>]+>/g, '')
+            );
+            if (!hasStandalone) {
+                excerptHtml = buildNumExcerpt(r, window.__q);
+            }
         }
+        eEl.innerHTML = excerptHtml;
         el.appendChild(tEl);
         el.appendChild(eEl);
         if (isVisited(a.href)) a.classList.add('visited');
@@ -252,9 +260,10 @@
                     }
                 }
                 // 渐进渲染: 首批 BATCH 条并行取 data() 快出, 其余滚动到底再加载 (2026-08-11)
-                // (全字匹配: 非全字匹配的结果跳过不渲染; 无限滚动: 和首页 isf-loader 一致)
+                // (全字匹配优先排序, 不过滤; 无限滚动: 和首页 isf-loader 一致)
+                // 2026-08-11: 全字匹配改为「排序优先」— 所有结果都显示,
+                // 标题/摘要完整包含查询词的排最前, 其余按状态+相关性排后面
                 var idx = 0;
-                var shownCount = 0;
                 var loading = false;
                 var allDone = false;
                 function renderNextBatch() {
@@ -264,21 +273,14 @@
                         allDone = true;
                         loader.classList.remove('visible');
                         endMark.classList.add('visible');
-                        if (shownCount) {
-                            metaEl.textContent = '搜索「' + q + '」共 ' + shownCount + ' 条全字匹配结果';
-                        } else {
-                            metaEl.textContent = '没有找到「' + q + '」全字匹配的内容';
-                        }
-                        return;
+                        return;  // meta 数字保持初始值, 不跳变 (2026-08-11)
                     }
                     loading = true;
                     loader.classList.add('visible');
                     idx += BATCH;
                     Promise.all(batch.map(function (r) { return r.data(); })).then(function (docs) {
                         if (myToken !== searchToken) return;  // 过期搜索, 丢弃 (2026-08-11)
-                        var exactDocs = docs.filter(function (d) { return sortKey(d).exact === 1; });
-                        shownCount += exactDocs.length;
-                        exactDocs.forEach(insertDoc);
+                        docs.forEach(insertDoc);  // 全部渲染, 不过滤 (2026-08-11)
                         loader.classList.remove('visible');
                         loading = false;
                         // 内容不足一屏时自动继续加载, 否则等滚动触发 (2026-08-11)
