@@ -201,7 +201,11 @@ html:not([data-theme="dark"]) .chroma .ss {
 }
 
 /* 搜索页无限滚动 loader/end (2026-08-11: 与首页 isf-loader 视觉一致) */
-.pagefind-ui__results + .isf-loader {
+.pagefind-ui__results + .isf-loader,
+.pagefind-ui__results + .isf-loader[hidden] {
+  display: none;
+}
+.pagefind-ui__results + .isf-loader:not([hidden]) {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -211,7 +215,11 @@ html:not([data-theme="dark"]) .chroma .ss {
   padding: 24px 0;
   margin: 0;
 }
-.pagefind-ui__results + .isf-end {
+.pagefind-ui__results + .isf-end,
+.pagefind-ui__results + .isf-end[hidden] {
+  display: none;
+}
+.pagefind-ui__results + .isf-end:not([hidden]) {
   text-align: center;
   color: var(--tertiary);
   font-size: 0.85rem;

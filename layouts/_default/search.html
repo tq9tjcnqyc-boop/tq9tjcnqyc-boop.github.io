@@ -102,9 +102,11 @@
     var timer = null;
     var BATCH = 12;  // 渐进渲染批大小: 首批快出, 后续后台补全 (不砍结果数)
     var searchBtn = document.getElementById('search-btn');
+    var rendered = [];  // 已渲染 doc 数组 (保持有序) — 提升到外层供点击导航读取 (2026-08-11)
     function doSearch() {
         var q = input.value.trim();
         clearTimeout(timer);
+        rendered = [];  // 新搜索重置
         if (!q) {
             resultsEl.innerHTML = '';
             metaEl.hidden = true;
@@ -157,7 +159,6 @@
                     if (sa !== sb) return sb - sa;
                     return 0;  // 组内保持 Pagefind 顺序
                 });
-                var rendered = [];  // 已渲染 doc 数组 (保持有序)
                 // 全字匹配判断 (2026-08-11): 纯数字查询必须独立匹配
                 //   「1」只匹配独立 1 (如 "1、一种"), 不匹配 106/101 里的 1
                 //   非数字查询: 标题或摘要完整包含查询词
@@ -260,6 +261,21 @@
     searchBtn.addEventListener('click', doSearch);
     input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') { doSearch(); }
+    });
+    // 搜索结果导航 (2026-08-11): 点击结果时把结果顺序+标题存 sessionStorage,
+    // 文章页用它改写上一篇/下一篇为上一结果/下一结果
+    resultsEl.addEventListener('click', function (e) {
+        var a = e.target.closest ? e.target.closest('a') : null;
+        if (!a || !a.href) return;
+        var urls = rendered.map(function (d) {
+            return {
+                url: new URL(d.url, location.origin).pathname,
+                title: (d.meta && d.meta.title) || ''
+            };
+        });
+        try {
+            sessionStorage.setItem('searchNav', JSON.stringify(urls));
+        } catch (err) { /* 忽略存储失败 */ }
     });
 })();
 </script>
