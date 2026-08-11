@@ -96,14 +96,15 @@
         }
 
         // ===== 上下文导航 + 返回恢复（2026-08-12 v5，需求见下）=====
-        // ①从标签页点进文章, 上下翻页停留在同一标签的内容里
+        // ①从标签页点进文章, 上下翻页停留在同一标签的内容里 (队列顺序)
         // ②从文章底部标签点进标签内容, 返回回到点击处(底部标签位置)
         // ③总之: 从哪里点进下一个窗口, 返回都回到上一次点击的地方
-        // ④上下翻页支持循环: 首篇的「上一页」→ 末篇, 末篇的「下一页」→ 首篇
+        // ④翻页不循环: 队列第一篇无「上一页」, 最后一篇无「下一页」, 到底即停;
+        //   浏览器返回/前进按钮仍可在队列里来回走 (exit-pos 恢复)
         // 方案:
         //   - 点击任何站内出站链接前, 先把当前滚动位置存 sessionStorage (exit-pos:<path>)
         //   - 列表页(标签/主页)点文章时, 把当前列表全部已加载文章的有序 URL+标题
-        //     存 sessionStorage (nav-ctx), 文章页据此改写 paginav 上下篇(循环)
+        //     存 sessionStorage (nav-ctx), 文章页据此改写 paginav 上下篇
         //   - 返回时: 有 hash = 锚点(TOC 前进); 否则优先恢复离开位置;
         //     都没有则回 TOC 目录顶部(原行为)
         // ⚠️ 沿用 scrollRestoration='manual': Safari 原生 hash 返回不恢复滚动(已知 bug)。
@@ -183,8 +184,15 @@
                 var spans = a.querySelectorAll('span');
                 if (spans.length > 1) spans[spans.length - 1].textContent = item.title;
             };
-            if (prevA) setLink(prevA, ctx.items[(idx - 1 + len) % len]);
-            if (nextA) setLink(nextA, ctx.items[(idx + 1) % len]);
+            // 队列顺序翻页, 不循环: 首篇无「上一页」, 末篇无「下一页」(与主题原生行为一致)
+            if (prevA) {
+                if (idx > 0) setLink(prevA, ctx.items[idx - 1]);
+                else prevA.parentNode.removeChild(prevA);
+            }
+            if (nextA) {
+                if (idx < len - 1) setLink(nextA, ctx.items[idx + 1]);
+                else nextA.parentNode.removeChild(nextA);
+            }
         }
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', applyNavContext);
