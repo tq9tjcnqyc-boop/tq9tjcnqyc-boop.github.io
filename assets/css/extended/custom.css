@@ -350,6 +350,18 @@ html:not([data-theme="dark"]) .chroma .ss {
 .pagefind-ui__search-input {
   padding-right: 16px !important;
 }
+/* 2026-08-11: 主页区块分组标题 (已授权专利/已驳回专利) */
+.list-section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 28px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--primary);
+}
+.list-section-title:first-child {
+  margin-top: 12px;
+}
 /* 2026-08-11: 标签云 — 热门标签置顶 + 长尾折叠 */
 .tags-section-title {
   font-size: 1.1rem;

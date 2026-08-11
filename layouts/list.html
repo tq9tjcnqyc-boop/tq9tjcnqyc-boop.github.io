@@ -43,7 +43,7 @@
 {{- if .IsHome }}
 {{- $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true"  }}
-{{- /* 2026-08-11: 主页只显示 授权+驳回, 授权在前驳回在后 (普通不进主页) */ -}}
+{{- /* 2026-08-11: 主页只显示 授权+驳回, 分区展示 (普通不进主页) */ -}}
 {{- $granted := where $pages ".Params.granted" true }}
 {{- $rejected := where $pages ".Params.rejected" true }}
 {{- $pages = $granted | append $rejected }}
@@ -58,15 +58,30 @@
 {{- $pages = $granted | append $rejected | append $others }}
 {{- end }}
 
-{{- $paginator := .Paginate $pages }}
+{{- /* 2026-08-11 主页: 区块分组展示 — 「已授权专利」区 + 「已驳回专利」区, 不再逐篇打 ✅/❌。
+       主页一页全显(总量小, 分区最自然); 非主页用默认分页 */ -}}
+{{- $pageSize := 9 }}
+{{- if .IsHome }}{{ $pageSize = 100 }}{{ end }}
+{{- $paginator := .Paginate $pages $pageSize }}
 
 {{- if and .IsHome site.Params.homeInfoParams (eq $paginator.PageNumber 1) }}
 {{- partial "home_info.html" . }}
 {{- end }}
 
 {{- $term := .Data.Term }}
+{{- $prevStatus := "" }}
 
 {{- range $index, $page := $paginator.Pages }}
+
+{{- /* 2026-08-11 主页区块标题: 状态变化时插「已授权专利」/「已驳回专利」区标题, 不再逐篇打 ✅/❌ */ -}}
+{{- $st := "normal" }}
+{{- if $page.Params.granted }}{{ $st = "granted" }}{{- else if $page.Params.rejected }}{{ $st = "rejected" }}{{- end }}
+{{- if and $.IsHome (ne $st $prevStatus) }}
+{{- if eq $st "granted" }}<h2 class="list-section-title">已授权专利</h2>
+{{- else if eq $st "rejected" }}<h2 class="list-section-title">已驳回专利</h2>
+{{- end }}
+{{- end }}
+{{- $prevStatus = $st }}
 
 {{- $class := "post-entry" }}
 
@@ -83,7 +98,6 @@
   <header class="entry-header">
     <h2 class="entry-hint-parent">
       <span class="entry-title-wrap">
-        {{- if .Params.granted }}<span class="state-mark" title="已授权">✅</span> {{- else if .Params.rejected }}<span class="state-mark" title="已驳回">❌</span> {{- end }}
         {{- .Title }}
       </span>
       {{- if .Draft }}
