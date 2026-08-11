@@ -201,15 +201,13 @@
                 var shownCount = 0;
                 var loading = false;
                 var allDone = false;
-                // loader / end 提示 (仿首页无限滚动)
+                // loader / end 提示 (仿主页无限滚动, 用 .visible class 控制, 与主页 extend_footer 一致)
                 var loader = document.createElement('div');
                 loader.className = 'isf-loader';
-                loader.innerHTML = '<span class="isf-spinner"></span>加载中…';
-                loader.hidden = true;
+                loader.innerHTML = '<span class="isf-spinner"></span><span>加载中…</span>';
                 var endMark = document.createElement('div');
                 endMark.className = 'isf-end';
                 endMark.textContent = '— 已加载全部结果 —';
-                endMark.hidden = true;
                 resultsEl.parentNode.appendChild(loader);
                 resultsEl.parentNode.appendChild(endMark);
                 function renderNextBatch() {
@@ -217,8 +215,8 @@
                     var batch = list.slice(idx, idx + BATCH);
                     if (!batch.length) {
                         allDone = true;
-                        loader.hidden = true;
-                        endMark.hidden = false;
+                        loader.classList.remove('visible');
+                        endMark.classList.add('visible');
                         if (shownCount) {
                             metaEl.textContent = '搜索「' + q + '」共 ' + shownCount + ' 条全字匹配结果';
                         } else {
@@ -227,14 +225,14 @@
                         return;
                     }
                     loading = true;
-                    loader.hidden = false;
+                    loader.classList.add('visible');
                     idx += BATCH;
                     Promise.all(batch.map(function (r) { return r.data(); })).then(function (docs) {
                         if (input.value.trim() !== q) return;
                         var exactDocs = docs.filter(function (d) { return sortKey(d).exact === 1; });
                         shownCount += exactDocs.length;
                         exactDocs.forEach(insertDoc);
-                        loader.hidden = true;
+                        loader.classList.remove('visible');
                         loading = false;
                         // 内容不足一屏时自动继续加载, 否则等滚动触发 (2026-08-11)
                         if (document.body.scrollHeight <= window.innerHeight * 1.2) {
