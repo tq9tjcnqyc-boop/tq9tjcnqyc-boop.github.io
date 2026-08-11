@@ -28,10 +28,6 @@ jobs:
           extended: true
       - name: Build
         run: hugo --minify --buildFuture
-      - name: Build search index (Pagefind)
-        run: |
-          npx --yes pagefind@1.5.2
-          bash scripts/gen_fragments.sh public
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public
