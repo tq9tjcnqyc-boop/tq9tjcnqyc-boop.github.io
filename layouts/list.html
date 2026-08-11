@@ -71,11 +71,12 @@
 {{- $class = "post-entry tag-entry" }}
 {{- end }}
 
-<article class="{{ $class }}{{ if $page.Params.granted }} state-granted{{ else if $page.Params.rejected }} state-rejected{{ end }}">
+<article class="{{ $class }}">
   {{- $isHidden := (.Param "cover.hiddenInList") | default (.Param "cover.hidden") | default false }}
   {{- partial "cover.html" (dict "cxt" . "IsSingle" false "isHidden" $isHidden) }}
   <header class="entry-header">
     <h2 class="entry-hint-parent">
+      {{- if .Params.granted }}<span class="state-mark" title="已授权">✅</span> {{- else if .Params.rejected }}<span class="state-mark" title="已驳回">❌</span> {{- end }}
       {{- .Title }}
       {{- if .Draft }}
       <span class="entry-hint" title="Draft">

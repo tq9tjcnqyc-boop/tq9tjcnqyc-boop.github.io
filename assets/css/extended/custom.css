@@ -200,40 +200,13 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
-/* 状态卡片背景色 (2026-08-11): 授权=绿, 驳回=红, 柔和适配明暗主题
-   覆盖首页 post-entry 与搜索 pagefind-ui__result 两种卡片
-   深色授权绿 C 方案 (2026-08-11): 亮绿10%底 + 38%边框, 更淡雅 */
-.post-entry.state-granted,
-.pagefind-ui__result.state-granted {
-  background: rgba(63, 185, 80, 0.10) !important;  /* C 柔绿: 暗模式更淡雅 */
-  border-color: rgba(63, 185, 80, 0.38) !important;
-}
-.post-entry.state-rejected,
-.pagefind-ui__result.state-rejected {
-  background: rgba(248, 81, 73, 0.12) !important;  /* 暗模式柔和红 */
-  border-color: rgba(248, 81, 73, 0.45) !important;
-}
-html[data-theme="light"] .post-entry.state-granted,
-html[data-theme="light"] .pagefind-ui__result.state-granted {
-  background: rgba(46, 160, 67, 0.08) !important;  /* 浅模式更淡 */
-  border-color: rgba(46, 160, 67, 0.35) !important;
-}
-html[data-theme="light"] .post-entry.state-rejected,
-html[data-theme="light"] .pagefind-ui__result.state-rejected {
-  background: rgba(248, 81, 73, 0.08) !important;
-  border-color: rgba(248, 81, 73, 0.35) !important;
-}
-@media (prefers-color-scheme: light) {
-  html[data-theme="auto"] .post-entry.state-granted,
-  html[data-theme="auto"] .pagefind-ui__result.state-granted {
-    background: rgba(46, 160, 67, 0.08) !important;
-    border-color: rgba(46, 160, 67, 0.35) !important;
-  }
-  html[data-theme="auto"] .post-entry.state-rejected,
-  html[data-theme="auto"] .pagefind-ui__result.state-rejected {
-    background: rgba(248, 81, 73, 0.08) !important;
-    border-color: rgba(248, 81, 73, 0.35) !important;
-  }
+/* 状态标记 (2026-08-11): 标题前 ✅ 授权 / ❌ 驳回, 不用背景色区分 */
+.state-mark {
+  display: inline-block;
+  font-size: 1em;
+  line-height: 1;
+  margin-right: .15em;
+  vertical-align: -0.05em;
 }
 .post-count {
   margin-left: .5rem;

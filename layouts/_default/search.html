@@ -54,17 +54,16 @@
     // 渲染一条结果 (pagefind 原始格式)
     function renderResult(r) {
         var el = document.createElement('article');
-        // 状态背景色: granted=绿, rejected=红 (filters 来自 single.html 的 data-pagefind-filter)
-        var granted = r.filters && r.filters.granted && r.filters.granted.length > 0;
-        var rejected = r.filters && r.filters.rejected && r.filters.rejected.length > 0;
-        el.className = 'pagefind-ui__result' + (granted ? ' state-granted' : (rejected ? ' state-rejected' : ''));
+        el.className = 'pagefind-ui__result';
         // 标题在 meta.title (Pagefind data() 无顶层 title 字段)
         var title = ((r.meta && r.meta.title) || r.title || '无标题').replace(/#+\s*$/, '').trim();
+        var granted = r.filters && r.filters.granted && r.filters.granted.length > 0;
+        var rejected = r.filters && r.filters.rejected && r.filters.rejected.length > 0;
         var tEl = document.createElement('h3');
         tEl.className = 'pagefind-ui__result-title search-result-title';
         var a = document.createElement('a');
         a.href = r.url;
-        a.innerHTML = title;
+        a.innerHTML = (granted ? '✅ ' : (rejected ? '❌ ' : '')) + title;
         tEl.appendChild(a);
         // 摘要
         var eEl = document.createElement('p');
@@ -125,7 +124,9 @@
                 var rendered = [];  // 已渲染 doc 数组 (保持有序)
                 function sortKey(d) {
                     var t = (d.meta && d.meta.title) || '';
-                    var exact = t.indexOf(q) > -1 ? 1 : 0;  // 标题含完整查询词
+                    var e = d.excerpt || '';
+                    // 全字匹配: 标题或摘要完整包含查询词 (2026-08-11, 用户要求优先全字匹配)
+                    var exact = (t.indexOf(q) > -1 || e.indexOf(q) > -1) ? 1 : 0;
                     var st = grantedIds[d.id] ? 2 : (rejectedIds[d.id] ? 1 : 0);
                     return { exact: exact, st: st };
                 }
