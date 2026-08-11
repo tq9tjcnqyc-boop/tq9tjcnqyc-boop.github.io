@@ -96,22 +96,36 @@
     }
     prewarm();
 
-    // 数字查询自定义摘要: 从正文定位独立数字(如 "1、"), 截取上下文, 高亮该数字本身
-    // (Pagefind 对数字前缀匹配, excerpt 会高亮 101/106 这种, 用户要求高亮独立数字)
-    function buildNumExcerpt(d, q) {
+    // 通用自定义摘要 (2026-08-11): 从正文定位查询词, 截取上下文窗口, 高亮查询词。
+    // 解决两个问题: ①Pagefind 原生摘要对低频词从头截取, 高亮词被 line-clamp 截掉看不到;
+    // ②摘要长短不一(有的1行有的3行)。窗口设计: 查询词放在摘要前部,
+    // 保证 line-clamp 2 行内必能看到高亮, 且所有卡片行数一致。
+    // 数字查询: 只定位独立数字(如 "1、"), 不匹配 106/101 里的 1 (用户要求)。
+    function buildExcerpt(d, q) {
         var raw = d.raw_content || d.content || '';
         if (!raw) return '';
-        var re = new RegExp('(^|[^0-9])(' + q + ')([^0-9]|$)');
+        var qIsNum = /^\d+$/.test(q);
+        var re = qIsNum
+            ? new RegExp('(^|[^0-9])(' + q + ')([^0-9]|$)')
+            : new RegExp(escapeRegExp(q));
         var m = re.exec(raw);
         if (!m) return '';
-        var start = Math.max(0, m.index - 15);
-        var end = Math.min(raw.length, m.index + m[0].length + 35);
+        var matchStart = m.index + (qIsNum ? 1 : 0);  // 查询词实际起始 (数字带前导分隔符)
+        var before = 12;   // 查询词前截 12 字 (短前文)
+        var after = 60;    // 查询词后截 60 字 (内容主体)
+        var start = Math.max(0, matchStart - before);
+        var end = Math.min(raw.length, matchStart + q.length + after);
         var seg = raw.slice(start, end);
         // 转义 HTML 后重新插入高亮 mark
         seg = seg.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        var re2 = new RegExp('([^0-9])(' + q + ')([^0-9]|$)');
-        seg = seg.replace(re2, '$1<mark>' + q + '</mark>$3');
+        var hlRe = qIsNum
+            ? new RegExp('([^0-9])(' + q + ')([^0-9]|$)')
+            : new RegExp('(' + escapeRegExp(q) + ')');
+        seg = seg.replace(hlRe, '$1<mark>' + q + '</mark>$3');
         return (start > 0 ? '…' : '') + seg + (end < raw.length ? '…' : '');
+    }
+    function escapeRegExp(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     // 渲染一条结果 (pagefind 原始格式)
@@ -131,20 +145,8 @@
         // 摘要
         var eEl = document.createElement('p');
         eEl.className = 'pagefind-ui__result-excerpt';
-        // 摘要 (2026-08-11 统一: 优先用 Pagefind 原生摘要, 数字查询的
-        // 原生摘要若不含独立数字(如只高亮 106/101), 才 fallback 自定义定位)
-        var excerptHtml = r.excerpt || '';
-        if (window.__qIsNum) {
-            // Pagefind 对数字前缀匹配, 原生 excerpt 可能只高亮 106/101 这种;
-            // 检查摘要里是否有独立数字(前后非数字), 没有才用自定义定位
-            var hasStandalone = new RegExp('(^|[^0-9])' + window.__q + '([^0-9]|$)').test(
-                excerptHtml.replace(/<[^>]+>/g, '')
-            );
-            if (!hasStandalone) {
-                excerptHtml = buildNumExcerpt(r, window.__q);
-            }
-        }
-        eEl.innerHTML = excerptHtml;
+        // 摘要 (2026-08-11: 统一用自定义摘要 buildExcerpt, 高亮词必在前2行可见)
+        eEl.innerHTML = buildExcerpt(r, window.__q) || r.excerpt || '';
         el.appendChild(tEl);
         el.appendChild(eEl);
         if (isVisited(a.href)) a.classList.add('visited');
