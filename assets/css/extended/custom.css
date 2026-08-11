@@ -200,8 +200,9 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
-/* 搜索页无限滚动 loader/end (2026-08-11: 与主页 extend_footer 的 isf-loader 样式完全一致) */
-.pagefind-ui__results + .isf-loader {
+/* 搜索页无限滚动 loader/end (2026-08-11: 与主页 extend_footer 的 isf-loader 样式完全一致)
+   DOM: results → loader → end, 用通用兄弟选择器 ~ 匹配 */
+.pagefind-ui__results ~ .isf-loader {
     display: none;
     text-align: center;
     padding: 18px 0 26px;
@@ -211,22 +212,22 @@ html:not([data-theme="dark"]) .chroma .ss {
     align-items: center;
     justify-content: center;
 }
-.pagefind-ui__results + .isf-loader.visible { display: flex; }
-.pagefind-ui__results + .isf-loader .isf-spinner {
+.pagefind-ui__results ~ .isf-loader.visible { display: flex; }
+.pagefind-ui__results ~ .isf-loader .isf-spinner {
     width: 16px; height: 16px;
     border: 2px solid var(--border);
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: isf-spin 0.8s linear infinite;
 }
-.pagefind-ui__results + .isf-end {
+.pagefind-ui__results ~ .isf-end {
     display: none;
     text-align: center;
     padding: 14px 0 22px;
     font-size: 13px;
     color: var(--secondary);
 }
-.pagefind-ui__results + .isf-end.visible { display: block; }
+.pagefind-ui__results ~ .isf-end.visible { display: block; }
 
 /* 状态标记 (2026-08-11): 标题前 ✅ 授权 / ❌ 驳回, 不用背景色区分 */
 .state-mark {
