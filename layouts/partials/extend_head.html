@@ -234,8 +234,10 @@
                 var maxY = document.documentElement.scrollHeight - window.innerHeight;
                 var t = Math.max(0, Math.min(target, maxY));
                 window.scrollTo(0, t);
-                if (Math.abs(window.scrollY - t) > 2) {
-                    setTimeout(attempt, 100); // 没到位: bfcache 冻结中, 等解冻再试
+                var landed = Math.abs(window.scrollY - t) <= 2;
+                var clamped = t < target - 2; // 目标超出当前可滚高度: 图片等还在加载
+                if (!landed || clamped) {
+                    setTimeout(attempt, 100); // 没到位: bfcache 冻结中/内容未加载完, 等再试
                 } else {
                     // 到位了: 等一帧渲染后显示, 保证用户看到的就是最终位置
                     requestAnimationFrame(show);
