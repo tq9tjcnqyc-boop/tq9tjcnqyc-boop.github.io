@@ -129,9 +129,9 @@
             // 三次轻量并行搜索 (索引内操作, 无需 data()):
             // 1) 全部  2) 授权  3) 驳回 — 零成本拿到状态分组
             return Promise.all([
-                pagefind.search(q),
-                pagefind.search(q, { filters: { granted: 'true' } }),
-                pagefind.search(q, { filters: { rejected: 'true' } })
+                pagefind.search(q, { excerptLength: 120 }),
+                pagefind.search(q, { filters: { granted: 'true' }, excerptLength: 120 }),
+                pagefind.search(q, { filters: { rejected: 'true' }, excerptLength: 120 })
             ]);
         }).then(function (res3) {
             if (input.value.trim() !== q) return;  // 输入已变, 丢弃过期结果
