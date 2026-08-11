@@ -95,19 +95,109 @@
             }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
 
-        // TOC 返回恢复（2026-08-11 第四版，针对 iOS Safari）:
-        // Safari 原生 hash 返回不恢复滚动位置(已知 bug), 必须 JS 接管。
-        // scrollRestoration='manual' 告诉浏览器别管滚动, 我们接管。
-        // popstate 时按 URL hash 判断方向:
-        //   有 hash  = 前进 → 滚到对应锚点标题
-        //   无 hash  = 返回 → 滚到 TOC 容器位置 (文章开头, 实时算)
-        // 不存 sessionStorage —— 多轮前进/返回循环时单值+删除会失效。
+        // ===== 上下文导航 + 返回恢复（2026-08-12 v5，需求见下）=====
+        // ①从标签页点进文章, 上下翻页停留在同一标签的内容里
+        // ②从文章底部标签点进标签内容, 返回回到点击处(底部标签位置)
+        // ③总之: 从哪里点进下一个窗口, 返回都回到上一次点击的地方
+        // ④上下翻页支持循环: 首篇的「上一页」→ 末篇, 末篇的「下一页」→ 首篇
+        // 方案:
+        //   - 点击任何站内出站链接前, 先把当前滚动位置存 sessionStorage (exit-pos:<path>)
+        //   - 列表页(标签/主页)点文章时, 把当前列表全部已加载文章的有序 URL+标题
+        //     存 sessionStorage (nav-ctx), 文章页据此改写 paginav 上下篇(循环)
+        //   - 返回时: 有 hash = 锚点(TOC 前进); 否则优先恢复离开位置;
+        //     都没有则回 TOC 目录顶部(原行为)
+        // ⚠️ 沿用 scrollRestoration='manual': Safari 原生 hash 返回不恢复滚动(已知 bug)。
         try { history.scrollRestoration = 'manual'; } catch (e) {}
-        function restoreToc() {
+        var NAV_KEY = 'nav-ctx';
+        var EXIT_PREFIX = 'exit-pos:';
+        var tocNav = false; // 同页 TOC 锚点往返标记: 返回回目录而非离开位置
+
+        function getExitPos() {
+            try { return JSON.parse(sessionStorage.getItem(EXIT_PREFIX + location.pathname) || 'null'); }
+            catch (e) { return null; }
+        }
+        function setExitPos() {
+            try { sessionStorage.setItem(EXIT_PREFIX + location.pathname, JSON.stringify({ y: window.scrollY || 0 })); }
+            catch (e) {}
+        }
+        function tocTopY() {
+            var toc = document.querySelector('.toc');
+            if (!toc) return 0;
+            return Math.max(0, toc.getBoundingClientRect().top + window.scrollY - 8);
+        }
+        var normUrl = function (u) { return (u || '').replace(/\/+$/, ''); };
+
+        // 点击拦截: 站内出站链接 = 记录离开位置; 列表页文章链接 = 另存导航上下文
+        document.addEventListener('click', function (e) {
+            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+            if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
+            var href = a.getAttribute('href');
+            if (!href) return;
+            try {
+                // 同页 hash (TOC 锚点): 标记往返, 返回时回目录顶部
+                if (href.charAt(0) === '#') {
+                    tocNav = true;
+                    return;
+                }
+                if (a.hostname !== location.hostname) return;
+                setExitPos();
+                tocNav = false; // 出站离开: 返回按离开位置, 不按 TOC 目录
+                // 列表页文章点击: 存当前列表(标签/主页)的有序 URL+标题
+                if (a.classList.contains('entry-link')) {
+                    var items = [];
+                    document.querySelectorAll('article a.entry-link').forEach(function (el) {
+                        var t = (el.getAttribute('aria-label') || '').replace(/^post link to\s*/, '');
+                        if (!t) {
+                            var h2 = el.closest('article').querySelector('h2');
+                            if (h2) t = h2.textContent.trim();
+                        }
+                        items.push({ url: el.href.split('#')[0], title: t });
+                    });
+                    if (items.length >= 2) {
+                        sessionStorage.setItem(NAV_KEY, JSON.stringify({ items: items }));
+                    }
+                }
+            } catch (err) {}
+        });
+
+        // 文章页: 按保存的列表上下文改写上下篇链接 (同标签内容, 循环)
+        function applyNavContext() {
+            var nav = document.querySelector('nav.paginav');
+            if (!nav) return;
+            var prevA = nav.querySelector('a.prev');
+            var nextA = nav.querySelector('a.next');
+            if (!prevA && !nextA) return;
+            var ctx = null;
+            try { ctx = JSON.parse(sessionStorage.getItem(NAV_KEY) || 'null'); } catch (e) {}
+            if (!ctx || !Array.isArray(ctx.items) || ctx.items.length < 2) return;
+            var cur = normUrl(location.href.split('#')[0]);
+            var idx = -1;
+            for (var i = 0; i < ctx.items.length; i++) {
+                if (normUrl(ctx.items[i].url) === cur) { idx = i; break; }
+            }
+            if (idx < 0) return;
+            var len = ctx.items.length;
+            var setLink = function (a, item) {
+                a.href = item.url;
+                var spans = a.querySelectorAll('span');
+                if (spans.length > 1) spans[spans.length - 1].textContent = item.title;
+            };
+            if (prevA) setLink(prevA, ctx.items[(idx - 1 + len) % len]);
+            if (nextA) setLink(nextA, ctx.items[(idx + 1) % len]);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyNavContext);
+        } else {
+            applyNavContext();
+        }
+
+        // 返回/前进恢复: 有 hash = 锚点(TOC); 无 hash = 恢复离开位置(或 TOC 目录)
+        function restoreBack() {
             if (location.hash) {
                 // 前进: 滚到锚点标题
                 var id = null;
-                try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { id = location.hash.slice(1); }
+                try { id = decodeURIComponent(location.hash.slice(1)); } catch (e2) { id = location.hash.slice(1); }
                 var el = document.getElementById(id);
                 if (el) {
                     var targetY = el.getBoundingClientRect().top + window.scrollY - 12;
@@ -115,10 +205,17 @@
                     return;
                 }
             }
-            // 返回: 滚到 TOC 容器位置 (文章开头固定位置)
-            var toc = document.querySelector('.toc');
-            var y = toc ? toc.getBoundingClientRect().top + window.scrollY : 0;
-            scrollToSmoothly(Math.max(0, y - 8));
+            if (tocNav) {
+                tocNav = false;
+                scrollToSmoothly(tocTopY()); // TOC 锚点往返: 回目录
+                return;
+            }
+            var exit = getExitPos();
+            if (exit && typeof exit.y === 'number') {
+                scrollToSmoothly(exit.y); // 出站点击的返回: 回到点击处
+                return;
+            }
+            scrollToSmoothly(tocTopY()); // 兜底: 文章页回目录顶部
         }
         // 通用滚动恢复: 隐藏页面 → 滚动 → 落地后显示 (消除中间帧闪烁)
         function scrollToSmoothly(target) {
@@ -147,9 +244,13 @@
             }
             attempt();
         }
-        window.addEventListener('popstate', restoreToc);
+        window.addEventListener('popstate', restoreBack);
         window.addEventListener('pageshow', function (e) {
-            if (e.persisted) restoreToc(); // bfcache 恢复
+            // bfcache 恢复 或 back_forward 重载: 都走 restoreBack 恢复位置。
+            // 用 navigation type 区分「返回到达」与「正常刷新/新开」。
+            var navType = '';
+            try { navType = (performance.getEntriesByType('navigation')[0] || {}).type || ''; } catch (e3) {}
+            if (e.persisted || navType === 'back_forward') restoreBack();
         });
     })();
 </script>
