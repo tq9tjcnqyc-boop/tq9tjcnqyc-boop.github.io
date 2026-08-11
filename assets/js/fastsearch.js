@@ -36,8 +36,10 @@ const buildFuseOptions = () => {
     };
 };
 
-/* 2026-08-11: 防抖延迟 150ms -> 300ms。输入停顿后再搜, 避免快速打字
-   时每个 150ms 间隙都触发搜索造成卡顿。中文输入法选词停顿通常 200-400ms。 */
+/* 2026-08-11: 防抖 150ms -> 400ms + IME 组合保护。
+   ⚠️ 仅防抖挡不住中文输入: 拼音打字时每敲一键都触发 input 事件,
+   停顿 300ms(选词/看候选)就会拿拼音去搜, 结果乱跳+卡顿。
+   正解 = compositionstart/end 期间不搜, 选词完成才触发一次搜索。 */
 const debounce = (fn, delay) => {
     let timeout;
     return (...args) => {
@@ -125,6 +127,21 @@ const performSearch = () => {
     renderResults(results);
 };
 
+/* 2026-08-11: 防抖 400ms + IME 组合保护 (在 performSearch 定义之后,
+   否则 const TDZ ReferenceError 崩整个脚本)。
+   ⚠️ 仅防抖挡不住中文输入: 拼音打字时每敲一键都触发 input 事件,
+   停顿 300ms(选词/看候选)就会拿拼音去搜, 结果乱跳+卡顿。
+   正解 = compositionstart/end 期间不搜, 选词完成才触发一次搜索。 */
+const scheduleSearch = debounce(performSearch, 400);
+let isComposing = false;
+
+const handleInput = () => {
+    if (isComposing) {
+        return; // IME 组合中: 拼音/候选未定型, 不搜
+    }
+    scheduleSearch();
+};
+
 const initSearch = async () => {
     if (!sInput || !resList) {
         return;
@@ -150,7 +167,14 @@ const initSearch = async () => {
 
 window.addEventListener('load', initSearch);
 
-sInput?.addEventListener('input', debounce(performSearch, 300));
+sInput?.addEventListener('input', handleInput);
+sInput?.addEventListener('compositionstart', () => {
+    isComposing = true;
+});
+sInput?.addEventListener('compositionend', () => {
+    isComposing = false;
+    scheduleSearch(); // 选词完成立即(防抖后)搜一次
+});
 
 sInput?.addEventListener('search', () => {
     if (!sInput.value) {
