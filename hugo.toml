@@ -11,10 +11,12 @@ paginate = 9
   pagerSize = 9
 
 cleanDestinationDir = true
-disableKinds = ['taxonomy', 'term']
-# 构建含「未来」文章: slug 时间戳可能晚于当前时刻, 默认 buildFuture=false
-# 会把它们当未来文章跳过(2026-08-10 实测 100 篇只剩 8 篇)。开启后全量构建。
+# 2026-08-11: 启用标签功能 (原来禁用 taxonomy, 现在用标签页替代搜索)
+disableKinds = []
 buildFuture = true
+
+[taxonomies]
+  tag = 'tags'
 
 [params]
   env = 'production'
@@ -30,8 +32,8 @@ buildFuture = true
   hideFooter = false
 
 [[menu.main]]
-  name = '搜索'
-  url = '/search/'
+  name = '标签'
+  url = '/tags/'
   weight = 10
 
 [[menu.main]]
