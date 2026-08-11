@@ -200,6 +200,37 @@ html:not([data-theme="dark"]) .chroma .ss {
   display: none;
 }
 
+/* 搜索页无限滚动 loader/end (2026-08-11: 与首页 isf-loader 视觉一致) */
+.pagefind-ui__results + .isf-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--secondary);
+  font-size: 0.9rem;
+  padding: 24px 0;
+  margin: 0;
+}
+.pagefind-ui__results + .isf-end {
+  text-align: center;
+  color: var(--tertiary);
+  font-size: 0.85rem;
+  padding: 20px 0 28px;
+  margin: 0;
+}
+.isf-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  display: inline-block;
+  animation: isf-spin 0.8s linear infinite;
+}
+@keyframes isf-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* 状态标记 (2026-08-11): 标题前 ✅ 授权 / ❌ 驳回, 不用背景色区分 */
 .state-mark {
   display: inline-block;

@@ -112,6 +112,15 @@
         }
         // 立即清空旧结果 + 显示加载中 (点击按钮才搜索, 结果立刻开始渲染)
         resultsEl.innerHTML = '';
+        // 清理旧搜索的 loader/endMark/scroll 监听 (2026-08-11)
+        var oldLoader = resultsEl.parentNode.querySelector('.isf-loader');
+        var oldEnd = resultsEl.parentNode.querySelector('.isf-end');
+        if (oldLoader) oldLoader.remove();
+        if (oldEnd) oldEnd.remove();
+        if (window.__searchOnScroll) {
+            window.removeEventListener('scroll', window.__searchOnScroll);
+            window.__searchOnScroll = null;
+        }
         metaEl.textContent = '搜索「' + q + '」中…';
         metaEl.hidden = false;
         getPagefind().then(function (pagefind) {
@@ -185,15 +194,30 @@
                         resultsEl.appendChild(el);
                     }
                 }
-                // 渐进渲染: 首批 BATCH 条并行取 data() 快出, 其余分批后台补全
-                // (2026-08-11 全字匹配: 非全字匹配的结果跳过不渲染)
+                // 渐进渲染: 首批 BATCH 条并行取 data() 快出, 其余滚动到底再加载 (2026-08-11)
+                // (全字匹配: 非全字匹配的结果跳过不渲染; 无限滚动: 和首页 isf-loader 一致)
                 var idx = 0;
                 var shownCount = 0;
-                function nextBatch() {
+                var loading = false;
+                var allDone = false;
+                // loader / end 提示 (仿首页无限滚动)
+                var loader = document.createElement('div');
+                loader.className = 'isf-loader';
+                loader.innerHTML = '<span class="isf-spinner"></span>加载中…';
+                loader.hidden = true;
+                var endMark = document.createElement('div');
+                endMark.className = 'isf-end';
+                endMark.textContent = '— 已加载全部结果 —';
+                endMark.hidden = true;
+                resultsEl.parentNode.appendChild(loader);
+                resultsEl.parentNode.appendChild(endMark);
+                function renderNextBatch() {
+                    if (loading || allDone) return;
                     var batch = list.slice(idx, idx + BATCH);
-                    idx += BATCH;
                     if (!batch.length) {
-                        // 全部批次完成, 更新实际显示数 (全字匹配过滤后可能少于原始数)
+                        allDone = true;
+                        loader.hidden = true;
+                        endMark.hidden = false;
                         if (shownCount) {
                             metaEl.textContent = '搜索「' + q + '」共 ' + shownCount + ' 条全字匹配结果';
                         } else {
@@ -201,15 +225,32 @@
                         }
                         return;
                     }
+                    loading = true;
+                    loader.hidden = false;
+                    idx += BATCH;
                     Promise.all(batch.map(function (r) { return r.data(); })).then(function (docs) {
                         if (input.value.trim() !== q) return;
                         var exactDocs = docs.filter(function (d) { return sortKey(d).exact === 1; });
                         shownCount += exactDocs.length;
                         exactDocs.forEach(insertDoc);
-                        nextBatch();
+                        loader.hidden = true;
+                        loading = false;
+                        // 内容不足一屏时自动继续加载, 否则等滚动触发 (2026-08-11)
+                        if (document.body.scrollHeight <= window.innerHeight * 1.2) {
+                            renderNextBatch();
+                        }
                     });
                 }
-                nextBatch();
+                // 滚动到底部触发下一批 (2026-08-11 无限滚动, 与首页一致)
+                window.__searchOnScroll = function () {
+                    if (loading || allDone) return;
+                    var w = window;
+                    if (w.innerHeight + w.scrollY >= document.body.scrollHeight - 300) {
+                        renderNextBatch();
+                    }
+                };
+                window.addEventListener('scroll', window.__searchOnScroll);
+                renderNextBatch();
             }).catch(function () {
                 metaEl.textContent = '搜索加载失败，请重试';
                 metaEl.hidden = false;
