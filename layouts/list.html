@@ -79,7 +79,7 @@
 {{- $s := plainify .Summary -}}
 {{- $s = htmlUnescape $s -}}
 {{- if .Truncated }}{{- $s = printf "%s..." $s -}}{{- end -}}
-{{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" $s "date" (.Date.Format "2006-01-02") "idx" (add $ri 1)) }}
+{{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" $s "date" (.Date | time.Format ":date_long") "words" (strings.RuneCount .Content) "idx" (add $ri 1)) }}
 {{- end }}
 <section class="post-entry random-card" id="randomCard" aria-label="随机一篇文章">
   <button id="randomCardBtn" type="button" aria-label="换一篇" title="换一篇">
@@ -93,7 +93,7 @@
       <p id="randomCardSummary"></p>
     </div>
     <footer class="entry-footer">
-      <span id="randomCardDate"></span>
+      <span id="randomCardMeta"></span>
       <span class="random-card-idx" id="randomCardIdx"></span>
     </footer>
   </a>
@@ -104,7 +104,7 @@
   var body = document.getElementById('randomCardBody');
   var nameEl = document.getElementById('randomCardName');
   var sumEl = document.getElementById('randomCardSummary');
-  var dateEl = document.getElementById('randomCardDate');
+  var metaEl = document.getElementById('randomCardMeta');
   var idxEl = document.getElementById('randomCardIdx');
   var btn = document.getElementById('randomCardBtn');
   if (!cards || !cards.length || !body || !btn) return;
@@ -115,12 +115,32 @@
     last = i;
     return cards[i];
   };
+  // 计分器效果: 序号从旧值滚动到新值 (2026-08-12 用户: 「弄成一个计分器效果的,不要这种乱动」)
+  var curIdx = null;
+  var animToken = 0;
+  var animateIdx = function (to, total) {
+    var from = curIdx === null ? to : curIdx;
+    curIdx = to;
+    var token = ++animToken;
+    var dur = 700;
+    var t0 = null;
+    var step = function (ts) {
+      if (token !== animToken) return;
+      if (t0 === null) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      p = 1 - Math.pow(1 - p, 3);
+      var v = Math.round(from + (to - from) * p);
+      idxEl.textContent = v + '/' + total;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
   var show = function (c) {
     nameEl.textContent = c.title;
     sumEl.textContent = c.summary;
-    if (dateEl) dateEl.textContent = c.date;
-    if (idxEl) idxEl.textContent = c.idx + '/' + cards.length;
+    metaEl.textContent = c.date + ' \u00B7 ' + c.words + ' \u5B57';
     body.href = c.url;
+    animateIdx(c.idx, cards.length);
   };
   show(pick());
   btn.addEventListener('click', function (e) {
