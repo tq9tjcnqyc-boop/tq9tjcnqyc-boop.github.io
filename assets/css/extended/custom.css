@@ -321,14 +321,76 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   outline-offset: 2px;
 }
 
-/* 2026-08-12: search clear (x) button — custom drawn, theme-aware.
-   Native ::-webkit-search-cancel-button styling is unreliable (mask/data-URI
-   doesn't apply in some engines), so we hide it and use our own button
-   (stroke=currentColor + color:var(--secondary)) which follows the theme
-   in both light/dark modes. */
+/* 2026-08-12: search clear (x) — hide native UA button (custom one used) */
 input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;
   appearance: none;
+}
+
+/* 2026-08-12: random patent card on home page — data inlined at build, zero requests */
+.random-card {
+  background: var(--entry);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 24px;
+}
+.random-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--secondary);
+  margin-bottom: 10px;
+}
+#randomCardBtn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: var(--tertiary);
+  color: var(--primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+#randomCardBtn:hover {
+  background: var(--border);
+}
+#randomCardBtn svg {
+  width: 15px;
+  height: 15px;
+}
+#randomCardBtn.spin {
+  animation: randomSpin 0.5s ease;
+}
+@keyframes randomSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.random-card-body {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.random-card-name {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+.random-card-summary {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--secondary);
+  line-height: 1.5;
 }
 .search-wrap {
   position: relative;

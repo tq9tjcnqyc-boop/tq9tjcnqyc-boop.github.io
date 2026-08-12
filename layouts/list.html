@@ -71,6 +71,56 @@
 {{- partial "home_info.html" . }}
 {{- end }}
 
+{{- /* 2026-08-12: 首页随机文章卡片 — 构建时内联全站文章数据(零请求),
+        JS 随机显示一篇, 按钮旋转切换。数据 ~70KB 原始, gzip 后 ~20KB */ -}}
+{{- if and .IsHome (eq $paginator.PageNumber 1) }}
+{{- $randCards := slice }}
+{{- range where site.RegularPages "Type" "in" site.Params.mainSections }}
+{{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" (substr (plainify .Summary) 0 90)) }}
+{{- end }}
+<section class="random-card" id="randomCard" aria-label="随机一篇文章">
+  <div class="random-card-head">
+    <span>随机一篇文章</span>
+    <button id="randomCardBtn" type="button" aria-label="换一篇" title="换一篇">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+    </button>
+  </div>
+  <a class="random-card-body" id="randomCardBody" href="#">
+    <span class="random-card-name" id="randomCardName"></span>
+    <span class="random-card-summary" id="randomCardSummary"></span>
+  </a>
+</section>
+<script>
+(function () {
+  var cards = {{ $randCards | jsonify | safeJS }};
+  var body = document.getElementById('randomCardBody');
+  var nameEl = document.getElementById('randomCardName');
+  var sumEl = document.getElementById('randomCardSummary');
+  var btn = document.getElementById('randomCardBtn');
+  if (!cards || !cards.length || !body || !btn) return;
+  var last = -1;
+  var pick = function () {
+    var i = Math.floor(Math.random() * cards.length);
+    if (i === last && cards.length > 1) i = (i + 1) % cards.length;
+    last = i;
+    return cards[i];
+  };
+  var show = function (c) {
+    nameEl.textContent = c.title;
+    sumEl.textContent = c.summary;
+    body.href = c.url;
+  };
+  show(pick());
+  btn.addEventListener('click', function () {
+    btn.classList.remove('spin');
+    void btn.offsetWidth;
+    btn.classList.add('spin');
+    show(pick());
+  });
+})();
+</script>
+{{- end }}
+
 {{- $term := .Data.Term }}
 {{- $prevStatus := "" }}
 
