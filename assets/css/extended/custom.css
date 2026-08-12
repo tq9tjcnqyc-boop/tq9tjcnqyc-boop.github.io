@@ -321,3 +321,31 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   outline-offset: 2px;
 }
 
+/* 2026-08-12: jump-to-bottom button, mirror of theme .top-link.
+   Shown when >1 viewport from bottom, hidden near bottom (.hidden class
+   comes from theme footer.css). Uses <button> so no URL hash pollution. */
+.bottom-link {
+  position: fixed;
+  bottom: 1rem;
+  right: 2rem;
+  z-index: 99;
+  background: var(--tertiary);
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 64px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary);
+  transition: visibility .3s, opacity .3s cubic-bezier(0.4, 0, 1, 1);
+}
+.bottom-link svg {
+  filter: drop-shadow(0px 0px 0px var(--theme));
+}
+.bottom-link:hover {
+  color: var(--primary);
+}
+

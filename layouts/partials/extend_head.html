@@ -269,5 +269,37 @@
             try { navType = (performance.getEntriesByType('navigation')[0] || {}).type || ''; } catch (e3) {}
             if (e.persisted || navType === 'back_forward') restoreBack();
         });
+
+        // ===== 跳到底部按钮（2026-08-12）=====
+        // 照主题「回到顶部」top-link 的对称逻辑: 距底部超过一屏时显示, 到底隐藏。
+        // 用 <button> 而非 <a href="#...">: 锚点会改 URL hash, 触发上面的
+        // hashchange 处理(弃用 exit-pos + tocNav 标记), 污染返回恢复逻辑。
+        function initBottomLink() {
+            var btn = document.createElement('button');
+            btn.id = 'bottom-link';
+            btn.className = 'bottom-link hidden';
+            btn.setAttribute('aria-label', '跳到底部');
+            btn.title = '跳到底部';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polyline points="7 13 12 18 17 13"></polyline><polyline points="7 6 12 11 17 6"></polyline></svg>';
+            document.body.appendChild(btn);
+            function update() {
+                var docH = document.documentElement.scrollHeight || document.body.scrollHeight;
+                var dist = docH - (window.innerHeight + (window.scrollY || 0));
+                btn.classList.toggle('hidden', dist < window.innerHeight);
+            }
+            btn.addEventListener('click', function () {
+                var docH = document.documentElement.scrollHeight || document.body.scrollHeight;
+                try { window.scrollTo({ top: docH, behavior: 'smooth' }); }
+                catch (e2) { window.scrollTo(0, docH); }
+            });
+            window.addEventListener('scroll', update, { passive: true });
+            window.addEventListener('resize', update, { passive: true });
+            update();
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initBottomLink);
+        } else {
+            initBottomLink();
+        }
     })();
 </script>
