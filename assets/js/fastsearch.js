@@ -49,6 +49,7 @@ const reset = () => {
     resList.innerHTML = '';
     sInput.value = '';
     hideStatus();
+    if (typeof updateClear === 'function') updateClear();
     sInput.focus();
 };
 
@@ -153,6 +154,20 @@ const hideStatus = () => {
 let pendingQuery = null;
 
 const searchBtn = document.getElementById('searchBtn');
+const clearBtn = document.getElementById('searchClear');
+
+/* 2026-08-12: 自绘清除按钮 — 有输入显示, 空隐藏, 点击清空并复位结果 */
+const updateClear = () => {
+    if (clearBtn) clearBtn.hidden = !sInput.value;
+};
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        reset();
+        sInput.focus();
+    });
+}
+sInput?.addEventListener('input', updateClear);
+sInput?.addEventListener('search', updateClear); // 键盘/原生清除也同步
 
 const doSearch = () => {
     const q = sInput.value.trim();
