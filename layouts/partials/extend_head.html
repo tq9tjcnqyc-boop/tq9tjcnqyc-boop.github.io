@@ -293,7 +293,7 @@
                 if (t) {
                     var tr = t.getBoundingClientRect();
                     if (tr.height > 0) {
-                        btn.style.bottom = (window.innerHeight - tr.bottom + 16) + 'px';
+                        btn.style.bottom = (window.innerHeight - tr.bottom - btn.offsetHeight - 16) + 'px';
                     } else {
                         btn.style.bottom = '';
                     }
