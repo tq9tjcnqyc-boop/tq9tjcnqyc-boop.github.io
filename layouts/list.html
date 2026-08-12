@@ -78,16 +78,17 @@
 {{- range where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" (substr (plainify .Summary) 0 90)) }}
 {{- end }}
-<section class="random-card" id="randomCard" aria-label="随机一篇文章">
-  <div class="random-card-head">
-    <span>随机一篇文章</span>
-    <button id="randomCardBtn" type="button" aria-label="换一篇" title="换一篇">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-    </button>
-  </div>
+<section class="post-entry random-card" id="randomCard" aria-label="随机一篇文章">
+  <button id="randomCardBtn" type="button" aria-label="换一篇" title="换一篇">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+  </button>
   <a class="random-card-body" id="randomCardBody" href="#">
-    <span class="random-card-name" id="randomCardName"></span>
-    <span class="random-card-summary" id="randomCardSummary"></span>
+    <header class="entry-header">
+      <h2 class="entry-hint-parent" id="randomCardName"></h2>
+    </header>
+    <div class="entry-content">
+      <p id="randomCardSummary"></p>
+    </div>
   </a>
 </section>
 <script>
@@ -111,7 +112,9 @@
     body.href = c.url;
   };
   show(pick());
-  btn.addEventListener('click', function () {
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
     btn.classList.remove('spin');
     void btn.offsetWidth;
     btn.classList.add('spin');
