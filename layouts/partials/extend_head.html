@@ -144,13 +144,14 @@
                 if (a.hostname !== location.hostname) return;
                 setExitPos();
                 tocNav = false; // 出站离开: 返回按离开位置, 不按 TOC 目录
-                // 列表页文章点击: 存当前列表(标签/主页)的有序 URL+标题
+                // 列表页/搜索页点文章: 存当前列表(标签/主页/搜索结果)的有序 URL+标题。
+                // 搜索结果链接同为 .entry-link(在 li 里, 不在 article 里), 统一选择器。
                 if (a.classList.contains('entry-link')) {
                     var items = [];
-                    document.querySelectorAll('article a.entry-link').forEach(function (el) {
+                    document.querySelectorAll('a.entry-link').forEach(function (el) {
                         var t = (el.getAttribute('aria-label') || '').replace(/^post link to\s*/, '');
                         if (!t) {
-                            var h2 = el.closest('article').querySelector('h2');
+                            var h2 = el.closest('article') && el.closest('article').querySelector('h2');
                             if (h2) t = h2.textContent.trim();
                         }
                         items.push({ url: el.href.split('#')[0], title: t });
