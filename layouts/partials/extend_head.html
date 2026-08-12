@@ -159,6 +159,10 @@
                     if (items.length >= 2) {
                         sessionStorage.setItem(NAV_KEY, JSON.stringify({ items: items }));
                     }
+                } else if (a.classList.contains('random-card-body')) {
+                    // 随机卡片点进文章: 清除旧队列上下文, 下一页走全站默认顺序
+                    // (2026-08-12 用户: 「随机卡片点进去文章下方不要出现下一页 就按照全体文章顺序」)
+                    try { sessionStorage.removeItem(NAV_KEY); } catch (e2) {}
                 }
             } catch (err) {}
         });
