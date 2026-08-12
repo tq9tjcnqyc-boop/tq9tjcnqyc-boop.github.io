@@ -7,16 +7,16 @@ enableInlineShortcodes = true
 enableRobotsTXT = true
 paginate = 5
 
+# 顶层键必须放在所有 [表头] 之前! (TOML 表之后的键会被归入该表)
+cleanDestinationDir = true
+buildFuture = true
+# 2026-08-12: 去掉标签功能(搜索只搜标题, 标签功能+标签全删)
+# 空 [taxonomies] 必须显式声明, 删掉会恢复 Hugo 默认 tag/category
+# 官方文档 kind 名: taxonomy / term
+disableKinds = ['taxonomy', 'term']
+
 [pagination]
   pagerSize = 5
-
-cleanDestinationDir = true
-# 2026-08-11: 启用标签功能 (原来禁用 taxonomy, 现在用标签页替代搜索)
-disableKinds = []
-buildFuture = true
-
-[taxonomies]
-  tag = 'tags'
 
 # 2026-08-11: 主题自带搜索需要 index.json (Fuse.js 数据源)
 [outputs]
@@ -41,28 +41,18 @@ buildFuture = true
   weight = 10
 
 [[menu.main]]
-  name = '标签'
-  url = '/tags/'
-  weight = 20
-
-[[menu.main]]
   name = '关于'
   url = '/about/'
-  weight = 30
+  weight = 20
 
 [[params.socialIcons]]
   name = 'github'
   url = 'https://github.com/tq9tjcnqyc-boop'
+  title = 'GitHub'
+  svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>'
 
-[params.assets]
-  theme_color = '#ffffff'
-
-[markup.goldmark.renderer]
-  unsafe = true
-
-[markup.highlight]
-  codefences = true
-  noclasses = false
-  style = 'catppuccin-latte'
-  tabwidth = 4
-  wrapperclass = 'highlight'
+[[params.socialIcons]]
+  name = 'rss'
+  url = '/index.xml'
+  title = 'RSS'
+  svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>'

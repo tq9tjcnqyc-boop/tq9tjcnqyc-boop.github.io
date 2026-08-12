@@ -303,4 +303,12 @@
             initBottomLink();
         }
     })();
+
+    // 2026-08-12: Service Worker 注册 — 静态资源缓存, 二次访问秒开。
+    // 只注册不预取; GitHub Pages 支持 SW (HTTPS)。
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+        navigator.serviceWorker.register('/sw.js').catch(function (err) {
+            console.warn('SW 注册失败:', err);
+        });
+    }
 </script>

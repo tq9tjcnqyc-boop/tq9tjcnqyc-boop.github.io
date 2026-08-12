@@ -13,9 +13,9 @@ const defaultFuseOptions = {
     distance: 100,
     threshold: 0.4,
     ignoreLocation: true,
-    /* 2026-08-12: keys 精简 — index.json 已去掉 summary(与content重叠的全文),
-       permalink 匹配无意义。只搜 title + content, Fuse 少扫一个大字段, 提速明显 */
-    keys: ['title', 'content']
+    /* 2026-08-12: 用户「搜索只保留对标题的搜索」— index.json 只剩 title+permalink,
+       只搜标题, 索引几十KB秒开 */
+    keys: ['title']
 };
 
 const buildFuseOptions = () => {
