@@ -369,6 +369,15 @@ input[type="search"]::-webkit-search-cancel-button {
   height: 14px;
 }
 
+/* 2026-08-12: unify top-link position across pages.
+   Theme zmedia.css applies translateY(-5rem) to .list .top-link on <=900px,
+   making list pages sit higher than single pages. Override to none. */
+@media screen and (max-width: 900px) {
+    .list .top-link {
+        transform: none;
+    }
+}
+
 /* 2026-08-12: jump-to-bottom button, mirror of theme .top-link.
    Shown when >1 viewport from bottom, hidden near bottom (.hidden class
    comes from theme footer.css). Uses <button> so no URL hash pollution. */
