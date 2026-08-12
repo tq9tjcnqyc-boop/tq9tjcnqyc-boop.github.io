@@ -1,7 +1,7 @@
 baseURL = 'https://tq9tjcnqyc-boop.github.io/'
 languageCode = 'zh-cn'
 defaultContentLanguage = 'zh'
-title = '专利档案库'
+title = '我的专利'
 theme = 'PaperMod'
 enableInlineShortcodes = true
 enableRobotsTXT = true
@@ -39,11 +39,6 @@ disableKinds = ['taxonomy', 'term']
   name = '搜索'
   url = '/search/'
   weight = 10
-
-[[menu.main]]
-  name = '关于'
-  url = '/about/'
-  weight = 20
 
 [[params.socialIcons]]
   name = 'github'
