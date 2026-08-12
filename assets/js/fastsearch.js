@@ -28,6 +28,7 @@ const buildFuseOptions = () => {
         minMatchCharLength: params.fuseOpts.minmatchcharlength ?? 1,
         shouldSort: params.fuseOpts.shouldsort ?? true,
         findAllMatches: params.fuseOpts.findallmatches ?? false,
+        ignoreFieldNorm: true, /* 2026-08-12: 大索引提速(206篇全文), 排序精度影响无感 */
         keys: params.fuseOpts.keys ?? defaultFuseOptions.keys,
         location: params.fuseOpts.location ?? 0,
         threshold: params.fuseOpts.threshold ?? defaultFuseOptions.threshold,
@@ -45,6 +46,7 @@ const reset = () => {
     lastResult = null;
     resList.innerHTML = '';
     sInput.value = '';
+    hideStatus();
     sInput.focus();
 };
 
@@ -64,6 +66,7 @@ const renderResults = (results) => {
     if (!Array.isArray(results) || results.length === 0) {
         resList.innerHTML = '';
         firstResult = lastResult = currentElement = null;
+        hideStatus();
         return;
     }
 
@@ -96,10 +99,23 @@ const renderResults = (results) => {
         fragment.appendChild(li);
     }
 
+    /* 2026-08-12: 结果分批渲染 (每帧 25 条) — 搜「装置」202 条一次性 append
+       会卡顿(大 DOM 操作), 分批后首屏秒出, 键盘导航的 first/last 随批次更新 */
     resList.innerHTML = '';
-    resList.appendChild(fragment);
-    firstResult = resList.firstElementChild;
-    lastResult = resList.lastElementChild;
+    firstResult = lastResult = currentElement = null;
+    const items = Array.from(fragment.children);
+    const BATCH = 25;
+    let i = 0;
+    const nextBatch = () => {
+        const end = Math.min(i + BATCH, items.length);
+        for (; i < end; i++) resList.appendChild(items[i]);
+        if (!firstResult) firstResult = resList.firstElementChild;
+        lastResult = resList.lastElementChild;
+        if (i < items.length) {
+            requestAnimationFrame(nextBatch);
+        }
+    };
+    nextBatch();
 };
 
 const performSearch = () => {
@@ -118,13 +134,33 @@ const performSearch = () => {
     renderResults(results);
 };
 
-/* 2026-08-11: 输入即搜被用户否(打字/IME 期间卡顿乱跳) — 改为按钮确认制:
-   「搜索」按钮 click 或 input 内回车才触发 performSearch, 输入过程零搜索。
-   ⚠️ 不做防抖/不做 IME 组合监听 — 按钮制下没有中间态, 不需要。 */
+/* 2026-08-12: 搜索按钮确认制下, 索引(index.json 6.2MB)加载需要几秒 —
+   就绪前点搜索不能无反应: 显示「索引加载中…」, 就绪后自动补搜。
+   状态行插在结果列表前, inline style 不走 custom.css(避免中文注释坑)。 */
+const statusEl = document.createElement('div');
+statusEl.id = 'searchStatus';
+statusEl.style.cssText = 'text-align:center;padding:16px 0;color:var(--secondary);font-size:14px;display:none;';
+const showStatus = (msg) => {
+    statusEl.textContent = msg;
+    statusEl.style.display = 'block';
+};
+const hideStatus = () => {
+    statusEl.style.display = 'none';
+};
+
+let pendingQuery = null;
+
 const searchBtn = document.getElementById('searchBtn');
 
 const doSearch = () => {
-    if (sInput.disabled || !fuse) {
+    const q = sInput.value.trim();
+    if (!q) {
+        return;
+    }
+    if (!fuse) {
+        // 索引未就绪: 提示 + 记住关键词, 就绪后自动执行
+        pendingQuery = q;
+        showStatus('索引加载中… 完成后自动搜索');
         return;
     }
     performSearch();
@@ -135,10 +171,7 @@ const initSearch = async () => {
         return;
     }
 
-    sInput.disabled = false;
-    if (searchBtn) {
-        searchBtn.disabled = false;
-    }
+    resList.before(statusEl);
     sInput.focus();
 
     try {
@@ -153,10 +186,32 @@ const initSearch = async () => {
         }
     } catch (error) {
         console.error(error);
+        showStatus('索引加载失败，请刷新重试');
+        return;
+    }
+
+    // 索引就绪后才启用输入/按钮 (2026-08-12: 之前 fetch 前就启用,
+    // 就绪前点搜索 fuse 为空直接 return = 点了没反应, 用户以为卡死)
+    sInput.disabled = false;
+    if (searchBtn) {
+        searchBtn.disabled = false;
+    }
+    hideStatus();
+    if (pendingQuery) {
+        // 就绪前按过搜索: 自动补搜
+        sInput.value = pendingQuery;
+        pendingQuery = null;
+        performSearch();
     }
 };
 
-window.addEventListener('load', initSearch);
+/* 2026-08-12: DOMContentLoaded 就拉索引(原来等 load, fetch 晚开始,
+   首次搜索整体更慢); readyState 判断兼容 script 时序 */
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSearch);
+} else {
+    initSearch();
+}
 
 sInput?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
