@@ -1,0 +1,9 @@
+{{- /* 2026-08-12: 站点覆盖主题 index.json — 去掉 summary(平均6538字符, 与content全文重叠),
+        索引 6.2MB -> ~2.7MB, 手机加载/解析快一半。content 保留全文(.Plain)保证正文搜索质量。 */ -}}
+{{- $.Scratch.Add "index" slice -}}
+{{- range site.RegularPages -}}
+    {{- if and (not .Params.searchHidden) (ne .Layout `archives`) (ne .Layout `search`) }}
+    {{- $.Scratch.Add "index" (dict "title" .Title "content" .Plain "permalink" .Permalink) -}}
+    {{- end }}
+{{- end -}}
+{{- $.Scratch.Get "index" | jsonify -}}

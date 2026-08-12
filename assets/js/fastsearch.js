@@ -13,7 +13,9 @@ const defaultFuseOptions = {
     distance: 100,
     threshold: 0.4,
     ignoreLocation: true,
-    keys: ['title', 'permalink', 'summary', 'content']
+    /* 2026-08-12: keys 精简 — index.json 已去掉 summary(与content重叠的全文),
+       permalink 匹配无意义。只搜 title + content, Fuse 少扫一个大字段, 提速明显 */
+    keys: ['title', 'content']
 };
 
 const buildFuseOptions = () => {
@@ -171,6 +173,9 @@ const initSearch = async () => {
         return;
     }
 
+    // 输入框/按钮立即可用(HTML 不再 disabled): 索引就绪前点搜索由
+    // doSearch 显示「索引加载中…」+ 就绪自动补搜, 不再锁输入 (2026-08-12:
+    // 之前锁到索引加载完, 手机 6.2MB 加载几秒~十几秒, 用户半天进不了输入框)
     resList.before(statusEl);
     sInput.focus();
 
@@ -190,12 +195,6 @@ const initSearch = async () => {
         return;
     }
 
-    // 索引就绪后才启用输入/按钮 (2026-08-12: 之前 fetch 前就启用,
-    // 就绪前点搜索 fuse 为空直接 return = 点了没反应, 用户以为卡死)
-    sInput.disabled = false;
-    if (searchBtn) {
-        searchBtn.disabled = false;
-    }
     hideStatus();
     if (pendingQuery) {
         // 就绪前按过搜索: 自动补搜
