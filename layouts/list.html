@@ -76,7 +76,9 @@
 {{- if and .IsHome (eq $paginator.PageNumber 1) }}
 {{- $randCards := slice }}
 {{- range where site.RegularPages "Type" "in" site.Params.mainSections }}
-{{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" (substr (plainify .Summary) 0 90)) }}
+{{- $s := plainify .Summary -}}
+{{- if gt (len $s) 90 }}{{- $s = printf "%s..." (substr $s 0 90) -}}{{- end -}}
+{{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" $s "date" (.Date.Format "2006-01-02")) }}
 {{- end }}
 <section class="post-entry random-card" id="randomCard" aria-label="随机一篇文章">
   <button id="randomCardBtn" type="button" aria-label="换一篇" title="换一篇">
@@ -89,6 +91,9 @@
     <div class="entry-content">
       <p id="randomCardSummary"></p>
     </div>
+    <footer class="entry-footer">
+      <span id="randomCardDate"></span>
+    </footer>
   </a>
 </section>
 <script>
@@ -97,6 +102,7 @@
   var body = document.getElementById('randomCardBody');
   var nameEl = document.getElementById('randomCardName');
   var sumEl = document.getElementById('randomCardSummary');
+  var dateEl = document.getElementById('randomCardDate');
   var btn = document.getElementById('randomCardBtn');
   if (!cards || !cards.length || !body || !btn) return;
   var last = -1;
@@ -109,6 +115,7 @@
   var show = function (c) {
     nameEl.textContent = c.title;
     sumEl.textContent = c.summary;
+    if (dateEl) dateEl.textContent = c.date;
     body.href = c.url;
   };
   show(pick());
