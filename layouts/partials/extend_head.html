@@ -287,6 +287,17 @@
                 var docH = document.documentElement.scrollHeight || document.body.scrollHeight;
                 var dist = docH - (window.innerHeight + (window.scrollY || 0));
                 btn.classList.toggle('hidden', dist < window.innerHeight);
+                // 2026-08-12: bottom-link 动态定位到 top-link 下方 16px
+                // (实测跟随渲染位置, 适配任何视口/字号; CSS bottom 仅作 fallback)
+                var t = document.getElementById('top-link');
+                if (t) {
+                    var tr = t.getBoundingClientRect();
+                    if (tr.height > 0) {
+                        btn.style.bottom = (window.innerHeight - tr.bottom + 16) + 'px';
+                    } else {
+                        btn.style.bottom = '';
+                    }
+                }
             }
             btn.addEventListener('click', function () {
                 var docH = document.documentElement.scrollHeight || document.body.scrollHeight;
