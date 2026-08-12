@@ -77,7 +77,8 @@
 {{- $randCards := slice }}
 {{- range where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $s := plainify .Summary -}}
-{{- if gt (len $s) 90 }}{{- $s = printf "%s..." (substr $s 0 90) -}}{{- end -}}
+{{- $s = htmlUnescape $s -}}
+{{- if .Truncated }}{{- $s = printf "%s..." $s -}}{{- end -}}
 {{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" $s "date" (.Date.Format "2006-01-02")) }}
 {{- end }}
 <section class="post-entry random-card" id="randomCard" aria-label="随机一篇文章">
