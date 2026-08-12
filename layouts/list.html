@@ -75,11 +75,11 @@
         JS 随机显示一篇, 按钮旋转切换。数据 ~70KB 原始, gzip 后 ~20KB */ -}}
 {{- if and .IsHome (eq $paginator.PageNumber 1) }}
 {{- $randCards := slice }}
-{{- range where site.RegularPages "Type" "in" site.Params.mainSections }}
+{{- range $ri, $p := where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $s := plainify .Summary -}}
 {{- $s = htmlUnescape $s -}}
 {{- if .Truncated }}{{- $s = printf "%s..." $s -}}{{- end -}}
-{{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" $s "date" (.Date.Format "2006-01-02")) }}
+{{- $randCards = $randCards | append (dict "title" .Title "url" .Permalink "summary" $s "date" (.Date.Format "2006-01-02") "idx" (add $ri 1)) }}
 {{- end }}
 <section class="post-entry random-card" id="randomCard" aria-label="随机一篇文章">
   <button id="randomCardBtn" type="button" aria-label="换一篇" title="换一篇">
@@ -94,6 +94,7 @@
     </div>
     <footer class="entry-footer">
       <span id="randomCardDate"></span>
+      <span class="random-card-idx" id="randomCardIdx"></span>
     </footer>
   </a>
 </section>
@@ -104,6 +105,7 @@
   var nameEl = document.getElementById('randomCardName');
   var sumEl = document.getElementById('randomCardSummary');
   var dateEl = document.getElementById('randomCardDate');
+  var idxEl = document.getElementById('randomCardIdx');
   var btn = document.getElementById('randomCardBtn');
   if (!cards || !cards.length || !body || !btn) return;
   var last = -1;
@@ -117,6 +119,7 @@
     nameEl.textContent = c.title;
     sumEl.textContent = c.summary;
     if (dateEl) dateEl.textContent = c.date;
+    if (idxEl) idxEl.textContent = c.idx + '/' + cards.length;
     body.href = c.url;
   };
   show(pick());
