@@ -409,10 +409,26 @@ input[type="search"]::-webkit-search-cancel-button {
 
 /* 2026-08-17: Others section (其余专利) collapsible - home HTML stays light, cards render on click */
 .others-section { margin-top: 12px; }
-.others-toggle { cursor: pointer; user-select: none; display: flex; align-items: baseline; gap: 6px; }
-.others-toggle:hover { opacity: .8; }
+/* 2026-08-17 v2: big tap target - button card look (user: 展开的按钮太小了) */
+.others-toggle {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--entry);
+  color: var(--primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 12px 0 8px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.others-toggle:hover { border-color: var(--primary); background: var(--code-bg); }
 .others-count { font-size: .85em; font-weight: normal; opacity: .65; }
-.others-arrow { font-size: .75em; transition: transform .2s ease; }
+.others-arrow { font-size: .95em; margin-left: auto; transition: transform .2s ease; }
 .others-toggle.open .others-arrow { transform: rotate(90deg); }
 #others-list { display: none; }
 #others-list.open { display: block; }
