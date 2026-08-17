@@ -313,6 +313,65 @@
         } else {
             initBottomLink();
         }
+        // ===== 「其余专利」折叠区（2026-08-17）=====
+        // 首页默认只渲染三态卡(20张), 189 张普通专利卡收进折叠区:
+        // 点击标题 fetch others.json 按需渲染, 再点收起。首页 HTML 从 2.9MB 瘦到 ~0.5MB。
+        function initOthersSection() {
+            var toggle = document.getElementById('others-toggle');
+            var list = document.getElementById('others-list');
+            if (!toggle || !list) return;
+            var loaded = false, loading = false;
+            function esc(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+            function render(items) {
+                var html = '';
+                for (var i = 0; i < items.length; i++) {
+                    var it = items[i];
+                    html += '<article class="post-entry">'
+                        + '<header class="entry-header"><h2 class="entry-hint-parent"><span class="entry-title-wrap">'
+                        + esc(it.title) + '</span></h2></header>'
+                        + '<div class="entry-content"><p>' + esc(it.summary) + '</p></div>'
+                        + '<footer class="entry-footer"><span>' + esc(it.date) + '</span></footer>'
+                        + '<a class="entry-link" aria-label="post link to ' + esc(it.title) + '" href="' + esc(it.url) + '"></a>'
+                        + '</article>';
+                }
+                list.innerHTML = html;
+                loaded = true;
+            }
+            toggle.addEventListener('click', function () {
+                var isOpen = list.classList.contains('open');
+                if (isOpen) {
+                    list.classList.remove('open');
+                    toggle.classList.remove('open');
+                    return;
+                }
+                list.classList.add('open');
+                toggle.classList.add('open');
+                if (!loaded && !loading) {
+                    loading = true;
+                    list.innerHTML = '<p class="others-loading">加载中…</p>';
+                    fetch('others.json', { cache: 'no-cache' })
+                        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                        .then(function (d) {
+                            if (d && Array.isArray(d.items)) render(d.items);
+                            else throw new Error('bad data');
+                            loading = false;
+                        })
+                        .catch(function () {
+                            list.innerHTML = '<p class="others-loading">加载失败，点这里重试</p>';
+                            loading = false;
+                        });
+                }
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initOthersSection);
+        } else {
+            initOthersSection();
+        }
     })();
 
     // 2026-08-12: Service Worker 注册 — 静态资源缓存, 二次访问秒开。

@@ -1,0 +1,15 @@
+{{- $pages := where site.RegularPages "Type" "in" site.Params.mainSections }}
+{{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true" }}
+{{- /* 其余专利 = 排除 granted/rejected/withdrawn 三态后的普通专利 (与 list.html 主页逻辑一致) */ -}}
+{{- $others := where $pages ".Params.granted" "ne" true }}
+{{- $others = where $others ".Params.rejected" "ne" true }}
+{{- $others = where $others ".Params.withdrawn" "ne" true }}
+{{- $items := slice }}
+{{- range $others }}
+{{- $s := .Summary | plainify | htmlUnescape }}
+{{- if .Truncated }}{{ $s = printf "%s..." $s }}{{ end }}
+{{- $d := "" }}
+{{- if not .Date.IsZero }}{{ $d = .Date | time.Format (default ":date_long" site.Params.DateFormat) }}{{ end }}
+{{- $items = $items | append (dict "title" .Title "url" .Permalink "date" $d "summary" $s) }}
+{{- end }}
+{"items": {{ $items | jsonify }}}

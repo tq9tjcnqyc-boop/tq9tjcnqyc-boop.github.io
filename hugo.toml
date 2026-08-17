@@ -20,7 +20,15 @@ disableKinds = ['taxonomy', 'term']
 
 # 2026-08-11: 主题自带搜索需要 index.json (Fuse.js 数据源)
 [outputs]
-  home = ['HTML', 'RSS', 'JSON']
+  home = ['HTML', 'RSS', 'JSON', 'others']
+
+# 2026-08-17: 「其余专利」折叠区数据源 — 首页 HTML 瘦身, 点开再取
+# ⚠️ Name 必须小写 'others' 才能匹配模板 layouts/index.others.json (2026-08-17 踩坑:
+# 大写 OthersJSON 时 Hugo 找不到模板, 会套用 PaperMod 的 index.json 搜索模板)
+[outputFormats.others]
+  mediaType = 'application/json'
+  baseName = 'others'
+  isPlainText = true
 
 [params]
   env = 'production'

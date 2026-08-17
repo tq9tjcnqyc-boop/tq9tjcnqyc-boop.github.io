@@ -39,19 +39,20 @@
 {{- end }}
 
 {{- $pages := union .RegularPages .Sections }}
+{{- $others := slice }}{{/* 2026-08-17: 顶层预定义, IsHome 块内赋值后块外可见(折叠区计数用) */}}
 
 {{- if .IsHome }}
 {{- $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true"  }}
 {{- /* 2026-08-11: 主页只显示 授权+驳回+主动撤回, 分区展示 (普通不进主页) */ -}}
-{{- /* 2026-08-17: 末尾加「其余专利」区 — 排除三态后的普通专利, 按时间排序 */ -}}
+{{- /* 2026-08-17: 「其余专利」改为折叠区(点开再取 others.json), 主页 HTML 不渲染 189 张卡 */ -}}
 {{- $granted := where $pages ".Params.granted" true }}
 {{- $rejected := where $pages ".Params.rejected" true }}
 {{- $withdrawn := where $pages ".Params.withdrawn" true }}
-{{- $others := where $pages ".Params.granted" "ne" true }}
+{{- $others = where $pages ".Params.granted" "ne" true }}
 {{- $others = where $others ".Params.rejected" "ne" true }}
 {{- $others = where $others ".Params.withdrawn" "ne" true }}
-{{- $pages = $granted | append $rejected | append $withdrawn | append $others }}
+{{- $pages = $granted | append $rejected | append $withdrawn }}
 {{- end }}
 
 {{- /* 非主页(标签/分类页): 显示全部文章, 授权 → 驳回 → 撤回 → 普通置顶排序 (2026-08-11) */ -}}
@@ -87,7 +88,6 @@
 {{- if eq $st "granted" }}<h2 class="list-section-title">已授权专利</h2>
 {{- else if eq $st "rejected" }}<h2 class="list-section-title">已驳回专利</h2>
 {{- else if eq $st "withdrawn" }}<h2 class="list-section-title">已撤回专利</h2>
-{{- else if eq $st "normal" }}<h2 class="list-section-title">其余专利</h2>
 {{- end }}
 {{- end }}
 {{- $prevStatus = $st }}
@@ -131,6 +131,14 @@
   {{- end }}
   <a class="entry-link" aria-label="post link to {{ .Title | plainify }}" href="{{ .Permalink }}"></a>
 </article>
+{{- end }}
+
+{{- /* 2026-08-17: 「其余专利」折叠区 — 默认收起, 点击标题 fetch others.json 渲染。$others 只在 IsHome 分支定义 */ -}}
+{{- if and $.IsHome $others }}
+<div class="others-section">
+  <h2 class="list-section-title others-toggle" id="others-toggle">其余专利<span class="others-count">（{{ len $others }}）</span><span class="others-arrow">▸</span></h2>
+  <div id="others-list" class="others-list"></div>
+</div>
 {{- end }}
 
 {{- end }}{{/* end profileMode */}}
