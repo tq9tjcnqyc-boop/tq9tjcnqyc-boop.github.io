@@ -39,16 +39,17 @@
 {{- end }}
 
 {{- $pages := union .RegularPages .Sections }}
-{{- $others := slice }}{{/* 2026-08-17: 顶层预定义, IsHome 块内赋值后块外可见(折叠区计数用) */}}
+{{- $others := slice }}{{/* 2026-08-17: 顶层预定义, IsHome 块内赋值后块外可见(折叠区计数/授权率用) */}}
+{{- $granted := slice }}{{- $rejected := slice }}{{- $withdrawn := slice }}
 
 {{- if .IsHome }}
 {{- $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true"  }}
 {{- /* 2026-08-11: 主页只显示 授权+驳回+主动撤回, 分区展示 (普通不进主页) */ -}}
 {{- /* 2026-08-17: 「其余专利」改为折叠区(点开再取 others.json), 主页 HTML 不渲染 189 张卡 */ -}}
-{{- $granted := where $pages ".Params.granted" true }}
-{{- $rejected := where $pages ".Params.rejected" true }}
-{{- $withdrawn := where $pages ".Params.withdrawn" true }}
+{{- $granted = where $pages ".Params.granted" true }}
+{{- $rejected = where $pages ".Params.rejected" true }}
+{{- $withdrawn = where $pages ".Params.withdrawn" true }}
 {{- $others = where $pages ".Params.granted" "ne" true }}
 {{- $others = where $others ".Params.rejected" "ne" true }}
 {{- $others = where $others ".Params.withdrawn" "ne" true }}
@@ -76,6 +77,15 @@
 {{- partial "home_info.html" . }}
 {{- end }}
 
+{{- /* 2026-08-17: 授权率 = 授权 ÷ (授权+驳回), 撤回不计入分母(审查结论口径) */ -}}
+{{- if .IsHome }}
+{{- $grantedN := len $granted }}{{- $rejectedN := len $rejected }}{{- $den := add $grantedN $rejectedN }}
+{{- $rate := 0 }}{{- if gt $den 0 }}{{ $rate = div (mul $grantedN 100) $den }}{{- end }}
+{{- if gt $den 0 }}
+<div class="grant-rate"><span class="grant-rate-label">授权率</span><strong class="grant-rate-num">{{ $rate }}%</strong><span class="grant-rate-detail">（{{ $grantedN }} 授权 / {{ $rejectedN }} 驳回）</span></div>
+{{- end }}
+{{- end }}
+
 {{- $term := .Data.Term }}
 {{- $prevStatus := "" }}
 
@@ -85,9 +95,9 @@
 {{- $st := "normal" }}
 {{- if $page.Params.granted }}{{ $st = "granted" }}{{- else if $page.Params.rejected }}{{ $st = "rejected" }}{{- else if $page.Params.withdrawn }}{{ $st = "withdrawn" }}{{- end }}
 {{- if and $.IsHome (ne $st $prevStatus) }}
-{{- if eq $st "granted" }}<h2 class="list-section-title">已授权专利</h2>
-{{- else if eq $st "rejected" }}<h2 class="list-section-title">已驳回专利</h2>
-{{- else if eq $st "withdrawn" }}<h2 class="list-section-title">已撤回专利</h2>
+{{- if eq $st "granted" }}<h2 class="list-section-title">已授权专利<span class="list-section-count">（{{ len $granted }}）</span></h2>
+{{- else if eq $st "rejected" }}<h2 class="list-section-title">已驳回专利<span class="list-section-count">（{{ len $rejected }}）</span></h2>
+{{- else if eq $st "withdrawn" }}<h2 class="list-section-title">已撤回专利<span class="list-section-count">（{{ len $withdrawn }}）</span></h2>
 {{- end }}
 {{- end }}
 {{- $prevStatus = $st }}
