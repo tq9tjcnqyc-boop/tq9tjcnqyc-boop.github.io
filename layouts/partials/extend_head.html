@@ -147,8 +147,17 @@
                 // 列表页/搜索页点文章: 存当前列表(标签/主页/搜索结果)的有序 URL+标题。
                 // 搜索结果链接同为 .entry-link(在 li 里, 不在 article 里), 统一选择器。
                 if (a.classList.contains('entry-link')) {
+                    // 首页四区(授权/驳回/撤回/其余): 按 data-section 分区收集队列,
+                    // 从授权区点进文章, 上下篇只在授权区内部走, 不串区 (2026-08-18)。
+                    // 其他页面(标签/搜索): 整页收集——该页列表本身就是一个队列。
+                    var isHome = location.pathname === '/' || location.pathname === '/index.html';
+                    var card = a.closest('article[data-section]');
+                    var sec = isHome && card ? card.getAttribute('data-section') : null;
+                    var links = sec
+                        ? document.querySelectorAll('article[data-section="' + sec + '"] a.entry-link')
+                        : document.querySelectorAll('a.entry-link');
                     var items = [];
-                    document.querySelectorAll('a.entry-link').forEach(function (el) {
+                    links.forEach(function (el) {
                         var t = (el.getAttribute('aria-label') || '').replace(/^post link to\s*/, '');
                         if (!t) {
                             var h2 = el.closest('article') && el.closest('article').querySelector('h2');
@@ -336,7 +345,7 @@
                 var html = '';
                 for (var i = 0; i < items.length; i++) {
                     var it = items[i];
-                    html += '<article class="post-entry">'
+                    html += '<article class="post-entry" data-section="others">'
                         + '<header class="entry-header"><h2 class="entry-hint-parent"><span class="entry-title-wrap">'
                         + esc(it.title) + '</span></h2></header>'
                         + '<div class="entry-content"><p>' + esc(it.summary) + '</p></div>'
