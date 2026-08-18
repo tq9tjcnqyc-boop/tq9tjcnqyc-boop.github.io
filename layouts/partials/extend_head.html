@@ -156,7 +156,7 @@
                         }
                         items.push({ url: el.href.split('#')[0], title: t });
                     });
-                    if (items.length >= 2) {
+                    if (items.length >= 1) {
                         sessionStorage.setItem(NAV_KEY, JSON.stringify({ items: items }));
                     }
                 }
@@ -172,7 +172,7 @@
             if (!prevA && !nextA) return;
             var ctx = null;
             try { ctx = JSON.parse(sessionStorage.getItem(NAV_KEY) || 'null'); } catch (e) {}
-            if (!ctx || !Array.isArray(ctx.items) || ctx.items.length < 2) return;
+            if (!ctx || !Array.isArray(ctx.items) || ctx.items.length === 0) return;
             var cur = normUrl(location.href.split('#')[0]);
             var idx = -1;
             for (var i = 0; i < ctx.items.length; i++) {
@@ -180,6 +180,12 @@
             }
             if (idx < 0) return;
             var len = ctx.items.length;
+            // 来源列表只有当前页这一条 (如搜索只命中 1 篇): 上下篇无意义,
+            // 直接隐藏整个导航, 不再显示全站顺序的上一篇/下一篇 (2026-08-18)。
+            if (len === 1) {
+                nav.parentNode.removeChild(nav);
+                return;
+            }
             var setLink = function (a, item) {
                 a.href = item.url;
                 var spans = a.querySelectorAll('span');
